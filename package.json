@@ -1,0 +1,24 @@
+{
+  "name": "all-chat",
+  "version": "1.0.0",
+  "description": "All-Chat application with Vercel Speed Insights",
+  "main": "index.html",
+  "scripts": {
+    "dev": "echo \"Development server not configured yet\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dayuan759-gif/All-Chat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dayuan759-gif/All-Chat/issues"
+  },
+  "homepage": "https://github.com/dayuan759-gif/All-Chat#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.1.0"
+  }
+}
