@@ -35,7 +35,7 @@
         .header-btn { font-size: 15px; color: #a78bfa; cursor: pointer; background: none; border: none; }
         .header-plus { font-size: 24px; color: #fff; cursor: pointer; background: none; border: none; line-height: 1; }
         
-        /* Telegram 风格顶部通话卡片按钮区 */
+        /* 顶部通话卡片按钮区 */
         .header-actions { display: flex; gap: 8px; align-items: center; }
         .tg-header-card-btn { width: 38px; height: 38px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .tg-header-card-btn:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.18); }
@@ -66,15 +66,31 @@
         .call-log-meta p { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .call-action-badge { font-size: 12px; color: #a78bfa; background: rgba(167, 139, 250, 0.1); padding: 6px 12px; border-radius: 16px; border: 1px solid rgba(167, 139, 250, 0.2); flex-shrink: 0; }
 
-        /* 好友列表 */
-        .friend-item { display: flex; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); }
+        /* 好友列表项样式（支持右下角红点及未读数字） */
+        .friend-item { display: flex; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.06); position: relative; }
         .friend-item:active { background: rgba(255,255,255,0.08); }
         .avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; margin-right: 12px; flex-shrink: 0; overflow: hidden; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .friend-meta { flex: 1; overflow: hidden; }
+        .friend-meta { flex: 1; overflow: hidden; padding-right: 24px; }
         .friend-name { font-size: 16px; font-weight: 500; color: #fff; margin-bottom: 4px; }
         .friend-email { font-size: 12px; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .empty-tip { text-align: center; color: #666; margin-top: 60px; font-size: 14px; }
+
+        /* 好友右侧靠底的未读红点数字气泡 */
+        .friend-unread-badge {
+            position: absolute;
+            right: 16px;
+            bottom: 12px;
+            background-color: #fa5151;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
 
         /* 聊天窗口视图 */
         #chat-view { flex: 1; display: flex; flex-direction: column; height: 100%; background: radial-gradient(circle at top right, #2e1065, #0f172a 50%, #09090b 100%); position: absolute; inset: 0; z-index: 20; }
@@ -104,7 +120,7 @@
         #emoji-picker.hidden { display: none !important; }
         .emoji-item { font-size: 24px; cursor: pointer; padding: 2px; user-select: none; }
 
-        /* Telegram 风格底部毛玻璃输入栏 */
+        /* 输入栏 */
         .tg-input-container { padding: 8px 12px 16px 12px; display: flex; align-items: center; gap: 8px; background: transparent; flex-shrink: 0; }
         .tg-circle-btn { width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.14); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .tg-circle-btn:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.25); }
@@ -168,7 +184,24 @@
         }
         .nav-item.active svg { fill: #fff; }
 
-        /* 音视频通话全屏遮罩 */
+        /* 底部“聊天”导航图标上的总未读数字角标 */
+        .badge-bubble {
+            position: absolute;
+            top: 2px;
+            right: 6px;
+            background-color: #fa5151;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 10px;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 1.5px solid rgba(35, 35, 40, 0.8);
+        }
+
+        /* 通话遮罩 */
         #call-modal { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 40px 20px; color: #fff; }
         .video-container { position: relative; width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; background: #222; border-radius: 16px; overflow: hidden; margin-bottom: 20px; }
         #remote-video { width: 100%; height: 100%; object-fit: cover; background: #111; }
@@ -249,7 +282,7 @@
         <!-- Tab 3: 聊天页面 -->
         <div id="tab-chats" class="view-panel">
             <div class="header">
-                <button class="header-btn" style="color:#fa5151;" id="logout-btn">退出</button>
+                <span></span>
                 <span class="header-title">All Chat 消息</span>
                 <button class="header-plus" id="add-friend-btn">+</button>
             </div>
@@ -293,9 +326,11 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.0</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.1</span>
                     </div>
                 </div>
+
+                <button class="primary-btn" id="logout-btn" style="background-color: #fa5151; margin-top: 24px;">退出登录</button>
             </div>
         </div>
 
@@ -312,9 +347,11 @@
             <button class="nav-item active" data-target="tab-chats">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
                 <span>聊天</span>
+                <!-- 底部导航栏总未读红点 -->
+                <span class="badge-bubble hidden" id="unread-badge">0</span>
             </button>
             <button class="nav-item" data-target="tab-settings">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1 z"></path></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 <span>设置</span>
             </button>
         </div>
@@ -364,7 +401,7 @@
 
     </div>
 
-    <!-- 4. 音视频通话全屏弹窗 -->
+    <!-- 4. 音视频通话弹窗 -->
     <div id="call-modal" class="hidden">
         <div class="call-info-center" id="call-waiting-view">
             <div class="call-avatar" id="call-avatar-icon">📞</div>
@@ -384,7 +421,86 @@
 
     <audio id="remote-audio" autoplay></audio>
 
-    <!-- Firebase 与前端逻辑 -->
+    <!-- 音频音效器 -->
+    <script>
+        const AudioHelper = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            },
+            playMessageSound() {
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    
+                    const osc1 = this.ctx.createOscillator();
+                    const gain1 = this.ctx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.setValueAtTime(880, now);
+                    gain1.gain.setValueAtTime(0.15, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    
+                    osc1.connect(gain1);
+                    gain1.connect(this.ctx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.15);
+
+                    const osc2 = this.ctx.createOscillator();
+                    const gain2 = this.ctx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1318.51, now + 0.12);
+                    gain2.gain.setValueAtTime(0.15, now + 0.12);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+                    osc2.connect(gain2);
+                    gain2.connect(this.ctx.destination);
+                    osc2.start(now + 0.12);
+                    osc2.stop(now + 0.35);
+                } catch (e) {}
+            },
+            playCallRing() {
+                try {
+                    this.init();
+                    const now = this.ctx.currentTime;
+                    for (let i = 0; i < 2; i++) {
+                        const start = now + (i * 0.4);
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(440, start);
+                        osc.frequency.setValueAtTime(480, start + 0.2);
+                        
+                        gain.gain.setValueAtTime(0.2, start);
+                        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
+                        
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start(start);
+                        osc.stop(start + 0.35);
+                    }
+                } catch (e) {}
+            }
+        };
+
+        let ringInterval = null;
+        function startRingLoop() {
+            AudioHelper.playCallRing();
+            if (!ringInterval) {
+                ringInterval = setInterval(() => { AudioHelper.playCallRing(); }, 2500);
+            }
+        }
+        function stopRingLoop() {
+            if (ringInterval) { clearInterval(ringInterval); ringInterval = null; }
+        }
+    </script>
+
+    <!-- Firebase 与主逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -392,16 +508,15 @@
 
         const statusTip = document.getElementById('status-tip');
 
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyDcWSFU58krmYC4Mk8oaOuqS2le1QfZQmI",
-  authDomain: "allchatapp-65dd0.firebaseapp.com",
-  projectId: "allchatapp-65dd0",
-  storageBucket: "allchatapp-65dd0.firebasestorage.app",
-  messagingSenderId: "483002742555",
-  appId: "1:483002742555:web:655afc575115a2872005be",
-  measurementId: "G-GB5N2BCPC4"
-};
+        const firebaseConfig = {
+          apiKey: "AIzaSyDcWSFU58krmYC4Mk8oaOuqS2le1QfZQmI",
+          authDomain: "allchatapp-65dd0.firebaseapp.com",
+          projectId: "allchatapp-65dd0",
+          storageBucket: "allchatapp-65dd0.firebasestorage.app",
+          messagingSenderId: "483002742555",
+          appId: "1:483002742555:web:655afc575115a2872005be",
+          measurementId: "G-GB5N2BCPC4"
+        };
 
         let app, auth, db;
         try {
@@ -419,6 +534,10 @@ const firebaseConfig = {
         let unsubCallLogs = null;
         let activeRoomId = null;
         let currentFriendData = null;
+
+        let friendUnreadCounts = {}; // 存储每个好友的未读消息数 { friendUid: count }
+        let messageListeners = [];   // 好友消息监听器数组
+        let totalUnreadCount = 0;    // 全局未读总数
 
         let mediaRecorder = null;
         let audioChunks = [];
@@ -446,6 +565,17 @@ const firebaseConfig = {
         const submitBtn = document.getElementById('submit-btn');
         const switchModeBtn = document.getElementById('switch-mode-btn');
         const authSubtitle = document.getElementById('auth-subtitle');
+        const unreadBadge = document.getElementById('unread-badge');
+
+        function updateGlobalBadge() {
+            totalUnreadCount = Object.values(friendUnreadCounts).reduce((a, b) => a + b, 0);
+            if (totalUnreadCount > 0) {
+                unreadBadge.textContent = totalUnreadCount > 99 ? '99+' : totalUnreadCount;
+                unreadBadge.classList.remove('hidden');
+            } else {
+                unreadBadge.classList.add('hidden');
+            }
+        }
 
         togglePwd.onclick = () => {
             if (pwdInput.type === 'password') {
@@ -488,6 +618,7 @@ const firebaseConfig = {
         };
 
         submitBtn.onclick = async () => {
+            AudioHelper.init();
             const email = emailInput.value.trim();
             const pwd = pwdInput.value.trim();
             const nickname = nicknameInput.value.trim();
@@ -559,6 +690,10 @@ const firebaseConfig = {
                 if (unsubMessages) unsubMessages();
                 if (unsubCall) unsubCall();
                 if (unsubCallLogs) unsubCallLogs();
+                messageListeners.forEach(unsub => unsub());
+                messageListeners = [];
+                friendUnreadCounts = {};
+                updateGlobalBadge();
                 appContainer.classList.add('hidden');
                 authView.classList.remove('hidden');
             }
@@ -631,7 +766,6 @@ const firebaseConfig = {
 
         const avatarFileInput = document.getElementById('avatar-file-input');
         const settingsAvatar = document.getElementById('settings-avatar');
-
         settingsAvatar.onclick = () => { avatarFileInput.click(); };
 
         avatarFileInput.onchange = async (e) => {
@@ -686,10 +820,54 @@ const firebaseConfig = {
         document.getElementById('add-friend-btn').onclick = handleAddFriend;
         document.getElementById('add-friend-btn2').onclick = handleAddFriend;
 
-        function listenFriends(uid) {
-            if (unsubFriends) unsubFriends();
+        function renderFriendList(friendsData) {
             const listEl = document.getElementById('friend-list');
             const contactListEl = document.getElementById('contact-list-container');
+
+            if (friendsData.length === 0) {
+                const emptyHTML = '<div class="empty-tip">暂无好友，点击右上角 + 号添加</div>';
+                listEl.innerHTML = emptyHTML;
+                contactListEl.innerHTML = emptyHTML;
+                return;
+            }
+
+            let htmlContent = '';
+            friendsData.forEach(f => {
+                const firstChar = (f.nickname || f.email || '?')[0].toUpperCase();
+                const avatarHTML = f.avatarUrl ? `<img src="${f.avatarUrl}">` : firstChar;
+                const unread = friendUnreadCounts[f.uid] || 0;
+                const badgeHTML = unread > 0 ? `<div class="friend-unread-badge">${unread > 99 ? '99+' : unread}</div>` : '';
+
+                htmlContent += `
+                    <div class="friend-item" data-uid="${f.uid}">
+                        <div class="avatar">${avatarHTML}</div>
+                        <div class="friend-meta">
+                            <div class="friend-name">${escapeHtml(f.nickname || '好友')}</div>
+                            <div class="friend-email">${escapeHtml(f.email)}</div>
+                        </div>
+                        ${badgeHTML}
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = htmlContent;
+            contactListEl.innerHTML = htmlContent;
+
+            document.querySelectorAll('.friend-item').forEach(el => {
+                el.onclick = async () => {
+                    const targetUid = el.getAttribute('data-uid');
+                    const fData = friendsData.find(item => item.uid === targetUid);
+                    if (fData) {
+                        openChat(fData);
+                    }
+                };
+            });
+        }
+
+        let cachedFriendsData = [];
+
+        function listenFriends(uid) {
+            if (unsubFriends) unsubFriends();
 
             unsubFriends = onSnapshot(doc(db, 'users', uid), async (docSnap) => {
                 if (!docSnap.exists()) return;
@@ -706,44 +884,44 @@ const firebaseConfig = {
                 }
 
                 const friendUids = data.friends || [];
-                if (friendUids.length === 0) {
-                    const emptyHTML = '<div class="empty-tip">暂无好友，点击右上角 + 号添加</div>';
-                    listEl.innerHTML = emptyHTML;
-                    contactListEl.innerHTML = emptyHTML;
-                    return;
-                }
+                
+                messageListeners.forEach(unsub => unsub());
+                messageListeners = [];
 
-                let htmlContent = '';
+                let tempFriendsData = [];
                 for (const fUid of friendUids) {
                     const fSnap = await getDoc(doc(db, 'users', fUid));
                     if (fSnap.exists()) {
-                        const fData = fSnap.data();
-                        const firstChar = (fData.nickname || fData.email || '?')[0].toUpperCase();
-                        const avatarHTML = fData.avatarUrl ? `<img src="${fData.avatarUrl}">` : firstChar;
-                        htmlContent += `
-                            <div class="friend-item" data-uid="${fData.uid}">
-                                <div class="avatar">${avatarHTML}</div>
-                                <div class="friend-meta">
-                                    <div class="friend-name">${fData.nickname || '好友'}</div>
-                                    <div class="friend-email">${fData.email}</div>
-                                </div>
-                            </div>
-                        `;
+                        tempFriendsData.push(fSnap.data());
                     }
+
+                    const roomId = [uid, fUid].sort().join('_');
+                    let isFirstPoll = true;
+                    const rMsgQuery = query(collection(db, 'rooms', roomId, 'messages'), orderBy('createdAt', 'asc'));
+                    
+                    const unsubMsg = onSnapshot(rMsgQuery, (snap) => {
+                        if (isFirstPoll) {
+                            isFirstPoll = false;
+                            return;
+                        }
+                        snap.docChanges().forEach((change) => {
+                            if (change.type === 'added') {
+                                const msgData = change.doc.data();
+                                // 如果不是自己发的消息，且当前没有在与该好友聊天
+                                if (msgData.sender !== uid && activeRoomId !== roomId) {
+                                    friendUnreadCounts[fUid] = (friendUnreadCounts[fUid] || 0) + 1;
+                                    updateGlobalBadge();
+                                    renderFriendList(cachedFriendsData);
+                                    AudioHelper.playMessageSound();
+                                }
+                            }
+                        });
+                    });
+                    messageListeners.push(unsubMsg);
                 }
 
-                listEl.innerHTML = htmlContent;
-                contactListEl.innerHTML = htmlContent;
-
-                document.querySelectorAll('.friend-item').forEach(el => {
-                    el.onclick = async () => {
-                        const targetUid = el.getAttribute('data-uid');
-                        const fSnap = await getDoc(doc(db, 'users', targetUid));
-                        if (fSnap.exists()) {
-                            openChat(fSnap.data());
-                        }
-                    };
-                });
+                cachedFriendsData = tempFriendsData;
+                renderFriendList(cachedFriendsData);
             });
         }
 
@@ -770,7 +948,7 @@ const firebaseConfig = {
                                 <span style="font-size:24px;">${icon}</span>
                                 <div class="call-log-meta">
                                     <h4>${escapeHtml(log.friendName)}</h4>
-                                    <p>${log.statusText} · ${timeStr}</p>
+                                    <p>${escapeHtml(log.statusText)} · ${timeStr}</p>
                                 </div>
                             </div>
                             <span class="call-action-badge">回拨</span>
@@ -817,6 +995,14 @@ const firebaseConfig = {
 
         function openChat(friendData) {
             currentFriendData = friendData;
+            
+            // 点击进入聊天后，立刻清除该好友的未读红点，并更新全局未读数和好友列表UI
+            if (friendUnreadCounts[friendData.uid]) {
+                friendUnreadCounts[friendData.uid] = 0;
+                updateGlobalBadge();
+                renderFriendList(cachedFriendsData);
+            }
+
             document.getElementById('floating-nav').classList.add('hidden-nav');
             document.getElementById('chat-view').classList.remove('hidden');
             document.getElementById('chat-friend-name').textContent = friendData.nickname || friendData.email;
@@ -827,9 +1013,12 @@ const firebaseConfig = {
             const msgBox = document.getElementById('messages-box');
             msgBox.innerHTML = '';
 
+            let isFirstLoad = true;
             const q = query(collection(db, 'rooms', activeRoomId, 'messages'), orderBy('createdAt', 'asc'));
             unsubMessages = onSnapshot(q, (snapshot) => {
                 msgBox.innerHTML = '';
+                let hasNewMessageFromOther = false;
+
                 snapshot.forEach((docSnap) => {
                     const m = docSnap.data();
                     const isMe = m.sender === currentUser.uid;
@@ -837,6 +1026,10 @@ const firebaseConfig = {
                     const row = document.createElement('div');
                     row.className = 'msg-row ' + (isMe ? 'me' : '');
                     
+                    if (!isFirstLoad && !isMe) {
+                        hasNewMessageFromOther = true;
+                    }
+
                     if (m.type === 'voice') {
                         row.innerHTML = `
                             <div class="voice-bubble" onclick="playVoice('${m.audioUrl}')">
@@ -877,6 +1070,15 @@ const firebaseConfig = {
                     }
                     msgBox.appendChild(row);
                 });
+
+                if (hasNewMessageFromOther) {
+                    AudioHelper.playMessageSound();
+                    // 在聊天中收到消息，自动归零
+                    friendUnreadCounts[friendData.uid] = 0;
+                    updateGlobalBadge();
+                }
+
+                isFirstLoad = false;
                 msgBox.scrollTop = msgBox.scrollHeight;
             });
         }
@@ -1088,6 +1290,7 @@ const firebaseConfig = {
                     if (data && data.answer && !peerConnection.currentRemoteDescription) {
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
                         callStatusText.textContent = '通话中...';
+                        stopRingLoop();
                         if (isVideoCall) {
                             callWaitingView.classList.add('hidden');
                             callVideoView.classList.remove('hidden');
@@ -1119,6 +1322,8 @@ const firebaseConfig = {
                         currentCallId = change.doc.id;
                         isVideoCall = callData.isVideo || false;
 
+                        startRingLoop();
+
                         const callerSnap = await getDoc(doc(db, 'users', callData.callerId));
                         const callerName = callerSnap.exists() ? (callerSnap.data().nickname || callerSnap.data().email) : callData.callerName;
 
@@ -1134,10 +1339,12 @@ const firebaseConfig = {
                         `;
 
                         document.getElementById('reject-btn').onclick = () => {
+                            stopRingLoop();
                             recordCallLog(callData.callerId, callerName, isVideoCall, '已拒绝');
                             cancelCallRecord('通话已拒绝');
                         };
                         document.getElementById('answer-btn').onclick = () => {
+                            stopRingLoop();
                             recordCallLog(callData.callerId, callerName, isVideoCall, '已接听');
                             answerCall(callData);
                         };
@@ -1148,6 +1355,7 @@ const firebaseConfig = {
 
         async function answerCall(callData) {
             try {
+                stopRingLoop();
                 callStatusText.textContent = '正在连接...';
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: isVideoCall });
                 if (isVideoCall) localVideo.srcObject = localStream;
@@ -1202,6 +1410,7 @@ const firebaseConfig = {
         }
 
         async function cancelCallRecord(reasonText) {
+            stopRingLoop();
             if (activeRoomId) {
                 try {
                     await addDoc(collection(db, 'rooms', activeRoomId, 'messages'), {
@@ -1217,6 +1426,7 @@ const firebaseConfig = {
         }
 
         async function hangUpCall() {
+            stopRingLoop();
             if (currentCallId) {
                 try { await updateDoc(doc(db, 'calls', currentCallId), { status: 'hungup' }); } catch (e) {}
             }
