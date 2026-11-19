@@ -9,7 +9,7 @@
         body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .hidden { display: none !important; }
 
-        /* 登录/注册页面 */
+        /* 登录/注册页面（仅在自动登录失败时作为兜底显示） */
         #auth-view { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: #fff; color: #333; z-index: 100; }
         .logo-title { font-size: 28px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
         .sub-title { font-size: 13px; color: #888; margin-bottom: 32px; }
@@ -279,8 +279,8 @@
 </head>
 <body>
 
-    <!-- 1. 登录 / 注册界面 -->
-    <div id="auth-view">
+    <!-- 1. 登录 / 注册界面（默认隐藏，打开直接进入聊天页面） -->
+    <div id="auth-view" class="hidden">
         <div class="logo-title">All Chat</div>
         <div class="sub-title" id="auth-subtitle">使用电子邮箱登录你的账号</div>
         
@@ -307,8 +307,8 @@
         </div>
     </div>
 
-    <!-- 2. 主应用界面 -->
-    <div id="app-container" class="app-container hidden">
+    <!-- 2. 主应用界面（默认直接显示聊天页面） -->
+    <div id="app-container" class="app-container">
         
         <!-- Tab 1: 联系人页面 -->
         <div id="tab-contacts" class="view-panel hidden">
@@ -318,7 +318,7 @@
             </div>
             <div class="tab-page">
                 <div id="contact-list-container">
-                    <div class="empty-tip">暂无好友，点击右上角 + 号添加</div>
+                    <div class="empty-tip">正在加载联系人...</div>
                 </div>
             </div>
         </div>
@@ -340,7 +340,7 @@
         <div id="tab-chats" class="view-panel">
             <div class="tab-page" style="padding:16px;">
                 <div id="friend-list">
-                    <div class="empty-tip">暂无好友，请到“联系人”页面点击右上角 + 号添加</div>
+                    <div class="empty-tip">正在进入聊天页面...</div>
                 </div>
             </div>
         </div>
@@ -378,7 +378,7 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.6</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.7</span>
                     </div>
                 </div>
 
@@ -579,6 +579,13 @@
 
         const statusTip = document.getElementById('status-tip');
 
+        // 如果你想改自动登录的默认账号，可修改下面两项（或在设置里退出后手动登录其他账号）
+        const AUTO_LOGIN_CONFIG = {
+            enabled: true,
+            email: "",
+            password: ""
+        };
+
         const firebaseConfig = {
           apiKey: "AIzaSyDcWSFU58krmYC4Mk8oaOuqS2le1QfZQmI",
           authDomain: "allchatapp-65dd0.firebaseapp.com",
@@ -756,6 +763,8 @@
             }
         };
 
+        let autoLoginAttempted = false;
+
         onAuthStateChanged(auth, async (user) => {
             submitBtn.disabled = false;
             submitBtn.textContent = isRegister ? '立即注册' : '登 录';
@@ -791,6 +800,23 @@
                 messageListeners = [];
                 friendUnreadCounts = {};
                 updateGlobalBadge();
+
+                // 首次打开未登录时，保持直接停留在聊天页并尝试静默登录预设账号
+                if (!autoLoginAttempted && AUTO_LOGIN_CONFIG.enabled && AUTO_LOGIN_CONFIG.email && AUTO_LOGIN_CONFIG.password) {
+                    autoLoginAttempted = true;
+                    appContainer.classList.remove('hidden');
+                    authView.classList.add('hidden');
+                    try {
+                        await signInWithEmailAndPassword(auth, AUTO_LOGIN_CONFIG.email, AUTO_LOGIN_CONFIG.password);
+                        return;
+                    } catch (err) {
+                        appContainer.classList.add('hidden');
+                        authView.classList.remove('hidden');
+                        statusTip.textContent = '自动登录失败，请手动登录';
+                        return;
+                    }
+                }
+
                 appContainer.classList.add('hidden');
                 authView.classList.remove('hidden');
             }
@@ -880,6 +906,10 @@
         };
 
         async function handleAddFriend() {
+            if (!currentUser) {
+                alert('账号正在连接中，请稍后再试');
+                return;
+            }
             const targetEmail = prompt('请输入好友的电子邮箱：');
             if (!targetEmail) return;
             const cleanEmail = targetEmail.trim();
