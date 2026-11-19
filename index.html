@@ -35,10 +35,11 @@
         .header-btn { font-size: 15px; color: #a78bfa; cursor: pointer; background: none; border: none; }
         .header-plus { font-size: 24px; color: #fff; cursor: pointer; background: none; border: none; line-height: 1; }
         
-        /* 顶部通话卡片按钮区 */
+        /* 顶部通话与操作按钮区 */
         .header-actions { display: flex; gap: 8px; align-items: center; }
         .tg-header-card-btn { width: 38px; height: 38px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .tg-header-card-btn:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.18); }
+        .tg-header-card-btn.danger-btn { color: #f87171; border-color: rgba(248, 113, 113, 0.25); }
 
         /* 各个 Tab 页面通用样式 */
         .tab-page { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: #121212; padding: 16px; padding-bottom: 90px; }
@@ -326,7 +327,7 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.2</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.3</span>
                     </div>
                 </div>
 
@@ -367,6 +368,9 @@
                     </button>
                     <button class="tg-header-card-btn" id="start-video-call-btn" title="视频通话">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+                    </button>
+                    <button class="tg-header-card-btn danger-btn" id="clear-chat-btn" title="删除聊天记录">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                     </button>
                 </div>
             </div>
@@ -504,7 +508,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, onSnapshot, collection, query, where, getDocs, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, onSnapshot, collection, query, where, getDocs, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const statusTip = document.getElementById('status-tip');
 
@@ -548,7 +552,7 @@
         let unsubCall = null;
         let currentCallId = null;
         let isVideoCall = false;
-        let isHangingUp = false; // 防止重复点击挂断的状态锁
+        let isHangingUp = false;
 
         const servers = {
             iceServers: [
@@ -1082,6 +1086,27 @@
             });
         }
 
+        // 删除当前聊天记录
+        document.getElementById('clear-chat-btn').onclick = async () => {
+            if (!activeRoomId || !currentFriendData) return;
+            const friendName = currentFriendData.nickname || currentFriendData.email;
+            const confirmed = confirm(`确定要删除与“${friendName}”的所有聊天记录吗？删除后无法恢复。`);
+            if (!confirmed) return;
+
+            try {
+                const msgSnap = await getDocs(collection(db, 'rooms', activeRoomId, 'messages'));
+                const deletePromises = [];
+                msgSnap.forEach((docSnap) => {
+                    deletePromises.push(deleteDoc(doc(db, 'rooms', activeRoomId, 'messages', docSnap.id)));
+                });
+                await Promise.all(deletePromises);
+                document.getElementById('messages-box').innerHTML = '';
+                alert('聊天记录已清空！');
+            } catch (e) {
+                alert('删除聊天记录失败: ' + e.message);
+            }
+        };
+
         window.playVoice = function(base64Audio) {
             try {
                 const audio = new Audio(base64Audio);
@@ -1216,7 +1241,7 @@
             rightActionBtn.classList.remove('recording');
         }
 
-        // ==================== 修复：音视频通话控制逻辑 ====================
+        // ==================== 音视频通话控制逻辑 ====================
         const callModal = document.getElementById('call-modal');
         const callWaitingView = document.getElementById('call-waiting-view');
         const callVideoView = document.getElementById('call-video-view');
@@ -1346,7 +1371,6 @@
                             <button class="call-action-btn btn-answer" id="answer-btn">接听</button>
                         `;
 
-                        // 监听对方如果在你接听前主动取消了呼叫
                         const callDocRef = doc(db, 'calls', currentCallId);
                         unsubCall = onSnapshot(callDocRef, (snap) => {
                             const d = snap.data();
@@ -1438,9 +1462,7 @@
         async function cancelCallRecord(reasonText) {
             stopRingLoop();
             const roomToNotify = activeRoomId;
-            const callIdToClose = currentCallId;
             
-            // 先立刻关闭界面并释放设备，不再等待网络请求
             hangUpCall();
 
             if (roomToNotify) {
@@ -1459,12 +1481,10 @@
         function hangUpCall() {
             stopRingLoop();
             
-            // 1. 立即隐藏全屏通话弹窗（第一优先级，绝不卡顿）
             callModal.classList.add('hidden');
             callVideoView.classList.add('hidden');
             callWaitingView.classList.remove('hidden');
 
-            // 2. 立即关闭摄像头和麦克风硬件占用
             if (localStream) {
                 localStream.getTracks().forEach(t => t.stop());
                 localStream = null;
@@ -1472,7 +1492,6 @@
             if (remoteVideo.srcObject) remoteVideo.srcObject = null;
             if (localVideo.srcObject) localVideo.srcObject = null;
 
-            // 3. 关闭 WebRTC 连接
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
@@ -1482,7 +1501,6 @@
                 unsubCall = null;
             }
 
-            // 4. 通知云端数据库将通话标记为 hungup（异步后台执行，不阻塞UI）
             const idToUpdate = currentCallId;
             currentCallId = null;
             if (idToUpdate) {
