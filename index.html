@@ -97,9 +97,9 @@
 
         /* 聊天窗口视图 */
         #chat-view { flex: 1; display: flex; flex-direction: column; height: 100%; background: radial-gradient(circle at top right, #2e1065, #0f172a 50%, #09090b 100%); position: absolute; inset: 0; z-index: 20; }
-        #messages-box { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        #messages-box { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px; }
         
-        .msg-wrapper { display: flex; align-items: center; gap: 10px; width: 100%; }
+        .msg-wrapper { display: flex; align-items: center; gap: 8px; width: 100%; }
         .msg-wrapper.select-mode { cursor: pointer; }
         .msg-wrapper.selected { background: rgba(124, 58, 237, 0.16); border-radius: 14px; padding: 4px 6px; margin: -4px -6px; }
 
@@ -121,23 +121,23 @@
             border-color: #a78bfa;
         }
 
-        .msg-row { display: flex; align-items: flex-end; gap: 8px; max-width: 82%; flex: 1; }
-        .msg-row.me { align-self: flex-end; flex-direction: row-reverse; justify-content: flex-start; }
+        .msg-row { display: flex; align-items: flex-end; gap: 6px; width: 100%; justify-content: flex-start; }
+        .msg-row.me { justify-content: flex-end; }
         
-        .msg-bubble { padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; word-break: break-word; background: rgba(45, 45, 50, 0.85); backdrop-filter: blur(8px); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); position: relative; }
+        .msg-bubble { max-width: 82%; padding: 10px 14px; border-radius: 18px; font-size: 15px; line-height: 1.4; word-break: break-word; background: rgba(45, 45, 50, 0.88); backdrop-filter: blur(8px); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); position: relative; }
         .msg-row.me .msg-bubble { background: linear-gradient(135deg, #7e22ce, #6b21a8); color: #fff; border-bottom-right-radius: 4px; }
         .msg-row:not(.me) .msg-bubble { border-bottom-left-radius: 4px; }
         .msg-time { font-size: 10px; color: rgba(255,255,255,0.65); margin-left: 8px; float: right; margin-top: 6px; }
-        .msg-img { max-width: 200px; max-height: 260px; border-radius: 12px; display: block; margin-bottom: 4px; cursor: zoom-in; object-fit: cover; }
+        .msg-img { max-width: 210px; max-height: 270px; border-radius: 12px; display: block; margin-bottom: 4px; cursor: zoom-in; object-fit: cover; }
 
-        .voice-bubble { display: flex; align-items: center; gap: 12px; cursor: pointer; min-width: 165px; padding: 10px 14px; background: linear-gradient(135deg, #7e22ce, #6b21a8); color: #fff; border-radius: 18px; border-bottom-right-radius: 4px; }
-        .msg-row:not(.me) .voice-bubble { background: rgba(45, 45, 50, 0.85); border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
+        .voice-bubble { max-width: 82%; display: flex; align-items: center; gap: 12px; cursor: pointer; min-width: 170px; padding: 10px 14px; background: linear-gradient(135deg, #7e22ce, #6b21a8); color: #fff; border-radius: 18px; border-bottom-right-radius: 4px; }
+        .msg-row:not(.me) .voice-bubble { background: rgba(45, 45, 50, 0.88); border-bottom-right-radius: 18px; border-bottom-left-radius: 4px; }
         .voice-play-icon { width: 34px; height: 34px; background: #fff; color: #7e22ce; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
         .voice-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
         .voice-wave { font-size: 14px; letter-spacing: 2px; color: rgba(255,255,255,0.85); }
         .voice-time-sub { font-size: 11px; color: rgba(255,255,255,0.7); }
 
-        .call-status-bubble { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(126, 34, 206, 0.75); backdrop-filter: blur(8px); color: #fff; padding: 10px 16px; border-radius: 16px; font-size: 14px; max-width: 100%; }
+        .call-status-bubble { max-width: 82%; display: flex; align-items: center; justify-content: space-between; gap: 14px; background: rgba(126, 34, 206, 0.78); backdrop-filter: blur(8px); color: #fff; padding: 10px 16px; border-radius: 16px; font-size: 14px; }
         .call-status-info { display: flex; flex-direction: column; gap: 2px; }
         .call-status-sub { font-size: 11px; color: rgba(255,255,255,0.75); }
 
@@ -383,7 +383,7 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.4</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.5</span>
                     </div>
                 </div>
 
@@ -1173,8 +1173,6 @@
                     `;
                 } else if (m.type === 'system_call') {
                     const icon = m.isVideo ? '📹' : '📞';
-                    row.className = 'msg-row';
-                    row.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
                     row.innerHTML = `
                         <div class="call-status-bubble">
                             <div class="call-status-info">
