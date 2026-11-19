@@ -34,7 +34,7 @@
         .header-title { font-size: 17px; font-weight: 600; color: #fff; }
         .header-btn { font-size: 14px; color: #a78bfa; cursor: pointer; background: none; border: none; padding: 4px 6px; }
         .header-btn.danger-text { color: #f87171; font-weight: 600; }
-        .header-plus { font-size: 24px; color: #fff; cursor: pointer; background: none; border: none; line-height: 1; }
+        .header-plus { font-size: 26px; color: #fff; cursor: pointer; background: none; border: none; line-height: 1; padding: 2px 6px; }
         
         /* 顶部通话与操作按钮区 */
         .header-actions { display: flex; gap: 6px; align-items: center; }
@@ -314,7 +314,7 @@
         <div id="tab-contacts" class="view-panel hidden">
             <div class="header">
                 <span class="header-title">联系人</span>
-                <button class="header-plus" id="add-friend-btn2">+</button>
+                <button class="header-plus" id="add-friend-btn" title="添加好友">+</button>
             </div>
             <div class="tab-page">
                 <div id="contact-list-container">
@@ -338,14 +338,9 @@
 
         <!-- Tab 3: 聊天页面 -->
         <div id="tab-chats" class="view-panel">
-            <div class="header">
-                <span></span>
-                <span class="header-title">All Chat 消息</span>
-                <button class="header-plus" id="add-friend-btn">+</button>
-            </div>
             <div class="tab-page" style="padding:16px;">
                 <div id="friend-list">
-                    <div class="empty-tip">暂无好友，点击右上角 + 号添加</div>
+                    <div class="empty-tip">暂无好友，请到“联系人”页面点击右上角 + 号添加</div>
                 </div>
             </div>
         </div>
@@ -383,7 +378,7 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.5</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.6</span>
                     </div>
                 </div>
 
@@ -920,16 +915,14 @@
         }
 
         document.getElementById('add-friend-btn').onclick = handleAddFriend;
-        document.getElementById('add-friend-btn2').onclick = handleAddFriend;
 
         function renderFriendList(friendsData) {
             const listEl = document.getElementById('friend-list');
             const contactListEl = document.getElementById('contact-list-container');
 
             if (friendsData.length === 0) {
-                const emptyHTML = '<div class="empty-tip">暂无好友，点击右上角 + 号添加</div>';
-                listEl.innerHTML = emptyHTML;
-                contactListEl.innerHTML = emptyHTML;
+                listEl.innerHTML = '<div class="empty-tip">暂无好友，请到“联系人”页面点击右上角 + 号添加</div>';
+                contactListEl.innerHTML = '<div class="empty-tip">暂无好友，点击右上角 + 号添加</div>';
                 return;
             }
 
@@ -1173,6 +1166,8 @@
                     `;
                 } else if (m.type === 'system_call') {
                     const icon = m.isVideo ? '📹' : '📞';
+                    row.className = 'msg-row';
+                    row.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
                     row.innerHTML = `
                         <div class="call-status-bubble">
                             <div class="call-status-info">
