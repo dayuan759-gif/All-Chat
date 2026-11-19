@@ -326,7 +326,7 @@
                         <span>通用设置</span><span style="color:#666;">›</span>
                     </div>
                     <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.1</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.2</span>
                     </div>
                 </div>
 
@@ -535,9 +535,9 @@
         let activeRoomId = null;
         let currentFriendData = null;
 
-        let friendUnreadCounts = {}; // 存储每个好友的未读消息数 { friendUid: count }
-        let messageListeners = [];   // 好友消息监听器数组
-        let totalUnreadCount = 0;    // 全局未读总数
+        let friendUnreadCounts = {}; 
+        let messageListeners = [];   
+        let totalUnreadCount = 0;    
 
         let mediaRecorder = null;
         let audioChunks = [];
@@ -548,6 +548,8 @@
         let unsubCall = null;
         let currentCallId = null;
         let isVideoCall = false;
+        let isHangingUp = false; // 防止重复点击挂断的状态锁
+
         const servers = {
             iceServers: [
                 { urls: 'stun:stun.l.google.com:19302' },
@@ -907,7 +909,6 @@
                         snap.docChanges().forEach((change) => {
                             if (change.type === 'added') {
                                 const msgData = change.doc.data();
-                                // 如果不是自己发的消息，且当前没有在与该好友聊天
                                 if (msgData.sender !== uid && activeRoomId !== roomId) {
                                     friendUnreadCounts[fUid] = (friendUnreadCounts[fUid] || 0) + 1;
                                     updateGlobalBadge();
@@ -996,7 +997,6 @@
         function openChat(friendData) {
             currentFriendData = friendData;
             
-            // 点击进入聊天后，立刻清除该好友的未读红点，并更新全局未读数和好友列表UI
             if (friendUnreadCounts[friendData.uid]) {
                 friendUnreadCounts[friendData.uid] = 0;
                 updateGlobalBadge();
@@ -1073,7 +1073,6 @@
 
                 if (hasNewMessageFromOther) {
                     AudioHelper.playMessageSound();
-                    // 在聊天中收到消息，自动归零
                     friendUnreadCounts[friendData.uid] = 0;
                     updateGlobalBadge();
                 }
@@ -1217,6 +1216,7 @@
             rightActionBtn.classList.remove('recording');
         }
 
+        // ==================== 修复：音视频通话控制逻辑 ====================
         const callModal = document.getElementById('call-modal');
         const callWaitingView = document.getElementById('call-waiting-view');
         const callVideoView = document.getElementById('call-video-view');
@@ -1233,6 +1233,7 @@
         async function initiateCall(videoFlag) {
             if (!currentFriendData) return;
             isVideoCall = videoFlag;
+            isHangingUp = false;
             
             callModal.classList.remove('hidden');
             callWaitingView.classList.remove('hidden');
@@ -1242,6 +1243,8 @@
             callActionButtons.innerHTML = `<button class="call-action-btn btn-hangup" id="hangup-call-btn">挂断</button>`;
             
             document.getElementById('hangup-call-btn').onclick = () => {
+                if (isHangingUp) return;
+                isHangingUp = true;
                 recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.email, isVideoCall, '已取消 / 未接通');
                 cancelCallRecord('通话已取消');
             };
@@ -1287,7 +1290,8 @@
 
                 unsubCall = onSnapshot(callDocRef, async (snapshot) => {
                     const data = snapshot.data();
-                    if (data && data.answer && !peerConnection.currentRemoteDescription) {
+                    if (!data) return;
+                    if (data.answer && peerConnection && !peerConnection.currentRemoteDescription) {
                         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
                         callStatusText.textContent = '通话中...';
                         stopRingLoop();
@@ -1296,7 +1300,8 @@
                             callVideoView.classList.remove('hidden');
                         }
                     }
-                    if (data && data.status === 'hungup') {
+                    if (data.status === 'hungup' && !isHangingUp) {
+                        isHangingUp = true;
                         recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.email, isVideoCall, '已完成');
                         hangUpCall();
                     }
@@ -1304,12 +1309,14 @@
 
                 onSnapshot(answerCandidates, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                        if (change.type === 'added' && peerConnection) {
+                            peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(()=>{});
+                        }
                     });
                 });
             } catch (e) {
                 alert('无法开启通话: ' + e.message);
-                cancelCallRecord('通话已取消');
+                hangUpCall();
             }
         }
 
@@ -1321,6 +1328,7 @@
                         const callData = change.doc.data();
                         currentCallId = change.doc.id;
                         isVideoCall = callData.isVideo || false;
+                        isHangingUp = false;
 
                         startRingLoop();
 
@@ -1338,7 +1346,19 @@
                             <button class="call-action-btn btn-answer" id="answer-btn">接听</button>
                         `;
 
+                        // 监听对方如果在你接听前主动取消了呼叫
+                        const callDocRef = doc(db, 'calls', currentCallId);
+                        unsubCall = onSnapshot(callDocRef, (snap) => {
+                            const d = snap.data();
+                            if (d && d.status === 'hungup' && !isHangingUp) {
+                                isHangingUp = true;
+                                hangUpCall();
+                            }
+                        });
+
                         document.getElementById('reject-btn').onclick = () => {
+                            if (isHangingUp) return;
+                            isHangingUp = true;
                             stopRingLoop();
                             recordCallLog(callData.callerId, callerName, isVideoCall, '已拒绝');
                             cancelCallRecord('通话已拒绝');
@@ -1396,11 +1416,17 @@
                     callVideoView.classList.remove('hidden');
                 }
                 callActionButtons.innerHTML = `<button class="call-action-btn btn-hangup" id="hangup-call-btn">挂断</button>`;
-                document.getElementById('hangup-call-btn').onclick = hangUpCall;
+                document.getElementById('hangup-call-btn').onclick = () => {
+                    if (isHangingUp) return;
+                    isHangingUp = true;
+                    hangUpCall();
+                };
 
                 onSnapshot(offerCandidates, (snapshot) => {
                     snapshot.docChanges().forEach((change) => {
-                        if (change.type === 'added') peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data()));
+                        if (change.type === 'added' && peerConnection) {
+                            peerConnection.addIceCandidate(new RTCIceCandidate(change.doc.data())).catch(()=>{});
+                        }
                     });
                 });
             } catch (e) {
@@ -1411,9 +1437,15 @@
 
         async function cancelCallRecord(reasonText) {
             stopRingLoop();
-            if (activeRoomId) {
+            const roomToNotify = activeRoomId;
+            const callIdToClose = currentCallId;
+            
+            // 先立刻关闭界面并释放设备，不再等待网络请求
+            hangUpCall();
+
+            if (roomToNotify) {
                 try {
-                    await addDoc(collection(db, 'rooms', activeRoomId, 'messages'), {
+                    await addDoc(collection(db, 'rooms', roomToNotify, 'messages'), {
                         type: 'system_call',
                         text: isVideoCall ? '已取消的视频通话' : reasonText,
                         isVideo: isVideoCall,
@@ -1422,19 +1454,40 @@
                     });
                 } catch (e) {}
             }
-            hangUpCall();
         }
 
-        async function hangUpCall() {
+        function hangUpCall() {
             stopRingLoop();
-            if (currentCallId) {
-                try { await updateDoc(doc(db, 'calls', currentCallId), { status: 'hungup' }); } catch (e) {}
-            }
-            if (localStream) { localStream.getTracks().forEach(t => t.stop()); localStream = null; }
-            if (peerConnection) { peerConnection.close(); peerConnection = null; }
-            if (unsubCall) { unsubCall(); unsubCall = null; }
-            currentCallId = callDocRef = null;
+            
+            // 1. 立即隐藏全屏通话弹窗（第一优先级，绝不卡顿）
             callModal.classList.add('hidden');
+            callVideoView.classList.add('hidden');
+            callWaitingView.classList.remove('hidden');
+
+            // 2. 立即关闭摄像头和麦克风硬件占用
+            if (localStream) {
+                localStream.getTracks().forEach(t => t.stop());
+                localStream = null;
+            }
+            if (remoteVideo.srcObject) remoteVideo.srcObject = null;
+            if (localVideo.srcObject) localVideo.srcObject = null;
+
+            // 3. 关闭 WebRTC 连接
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            if (unsubCall) {
+                unsubCall();
+                unsubCall = null;
+            }
+
+            // 4. 通知云端数据库将通话标记为 hungup（异步后台执行，不阻塞UI）
+            const idToUpdate = currentCallId;
+            currentCallId = null;
+            if (idToUpdate) {
+                updateDoc(doc(db, 'calls', idToUpdate), { status: 'hungup' }).catch(() => {});
+            }
         }
 
         function escapeHtml(str) {
