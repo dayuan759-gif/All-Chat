@@ -9,7 +9,7 @@
         body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .hidden { display: none !important; }
 
-        /* 登录/注册页面（仅在自动登录失败时作为兜底显示） */
+        /* 登录/注册页面 */
         #auth-view { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: #fff; color: #333; z-index: 100; }
         .logo-title { font-size: 28px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
         .sub-title { font-size: 13px; color: #888; margin-bottom: 32px; }
@@ -59,6 +59,13 @@
 
         .edit-profile-btn { position: absolute; right: 16px; top: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; }
         .edit-profile-btn:active { background: rgba(255,255,255,0.2); }
+
+        /* 设置页通知模式卡片 */
+        .settings-card { background: rgba(255,255,255,0.04); border-radius: 14px; padding: 4px 16px; border: 1px solid rgba(255,255,255,0.06); margin-top: 8px; }
+        .settings-row { padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between; align-items:center; gap: 12px; }
+        .settings-row:last-child { border-bottom: none; }
+        .settings-select { background: rgba(124, 58, 237, 0.22); color: #fff; border: 1px solid rgba(167, 139, 250, 0.4); border-radius: 8px; padding: 6px 10px; font-size: 13px; outline: none; }
+        .notify-test-btn { background: rgba(255,255,255,0.1); color: #a78bfa; border: 1px solid rgba(167,139,250,0.3); border-radius: 8px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
 
         /* 通话记录列表项样式 */
         .call-log-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: rgba(255,255,255,0.04); border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.06); cursor: pointer; }
@@ -370,15 +377,27 @@
                     <div class="profile-info-val" id="settings-username">@---</div>
                 </div>
 
-                <div style="background: rgba(255,255,255,0.04); border-radius: 14px; padding: 4px 16px; border: 1px solid rgba(255,255,255,0.06); margin-top: 8px;">
-                    <div style="padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between;">
+                <div class="settings-card">
+                    <div class="settings-row">
+                        <div>
+                            <div>通知模式</div>
+                            <div style="font-size:11px;color:#888;margin-top:2px;" id="notify-status-desc">当前：手机系统横幅 + 桌面角标红点</div>
+                        </div>
+                        <select class="settings-select" id="notify-mode-select">
+                            <option value="system_and_badge">手机横幅 + 角标</option>
+                            <option value="badge_only">仅红点角标 + 音效</option>
+                            <option value="silent">静音免打扰</option>
+                        </select>
+                    </div>
+                    <div class="settings-row">
+                        <span>测试手机通知提醒</span>
+                        <button class="notify-test-btn" id="test-notify-btn">发送测试通知</button>
+                    </div>
+                    <div class="settings-row">
                         <span>账号安全</span><span style="color:#666;">›</span>
                     </div>
-                    <div style="padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); display:flex; justify-content:space-between;">
-                        <span>通用设置</span><span style="color:#666;">›</span>
-                    </div>
-                    <div style="padding: 14px 0; display:flex; justify-content:space-between;">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.7</span>
+                    <div class="settings-row">
+                        <span>关于 All Chat</span><span style="color:#888;">v2.8</span>
                     </div>
                 </div>
 
@@ -409,7 +428,6 @@
 
         <!-- 3. 实时私聊全屏视图 -->
         <div id="chat-view" class="hidden">
-            <!-- 常规聊天顶部栏 -->
             <div class="header" id="chat-normal-header">
                 <button class="header-btn" id="back-to-list-btn">‹ 返回</button>
                 <span class="header-title" id="chat-friend-name">好友</span>
@@ -429,7 +447,6 @@
                 </div>
             </div>
 
-            <!-- 逐条选择删除顶部栏 -->
             <div class="header hidden" id="chat-select-header">
                 <button class="header-btn" id="cancel-select-btn">取消</button>
                 <span class="header-title" id="selected-count-text">已选 0 条</span>
@@ -492,8 +509,67 @@
 
     <audio id="remote-audio" autoplay></audio>
 
-    <!-- 音频音效器 -->
+    <!-- 通知管理器 + 音频音效器 -->
     <script>
+        const NotifyManager = {
+            mode: localStorage.getItem('allchat_notify_mode') || 'system_and_badge',
+
+            setMode(newMode) {
+                this.mode = newMode;
+                localStorage.setItem('allchat_notify_mode', newMode);
+                if (newMode === 'system_and_badge') {
+                    this.requestPermission();
+                }
+            },
+
+            async requestPermission() {
+                if (!('Notification' in window)) return 'unsupported';
+                if (Notification.permission === 'default') {
+                    return await Notification.requestPermission();
+                }
+                return Notification.permission;
+            },
+
+            async setAppIconBadge(count) {
+                if (this.mode === 'silent') {
+                    count = 0;
+                }
+                try {
+                    if (navigator.setAppBadge) {
+                        if (count > 0) {
+                            await navigator.setAppBadge(count);
+                        } else if (navigator.clearAppBadge) {
+                            await navigator.clearAppBadge();
+                        }
+                    }
+                } catch (e) {}
+            },
+
+            async showSystemNotification(title, body, onClickCallback) {
+                if (this.mode !== 'system_and_badge') return;
+                if (!('Notification' in window)) return;
+
+                let perm = Notification.permission;
+                if (perm === 'default') {
+                    perm = await Notification.requestPermission();
+                }
+                if (perm !== 'granted') return;
+
+                try {
+                    const n = new Notification(title, {
+                        body: body,
+                        tag: 'allchat-msg-' + Date.now(),
+                        renotify: true
+                    });
+                    n.onclick = () => {
+                        window.focus();
+                        if (typeof onClickCallback === 'function') onClickCallback();
+                        n.close();
+                    };
+                } catch (e) {}
+            }
+        };
+
         const AudioHelper = {
             ctx: null,
             init() {
@@ -506,6 +582,7 @@
                 }
             },
             playMessageSound() {
+                if (NotifyManager.mode === 'silent') return;
                 try {
                     this.init();
                     const now = this.ctx.currentTime;
@@ -536,6 +613,7 @@
                 } catch (e) {}
             },
             playCallRing() {
+                if (NotifyManager.mode === 'silent') return;
                 try {
                     this.init();
                     const now = this.ctx.currentTime;
@@ -579,7 +657,6 @@
 
         const statusTip = document.getElementById('status-tip');
 
-        // 如果你想改自动登录的默认账号，可修改下面两项（或在设置里退出后手动登录其他账号）
         const AUTO_LOGIN_CONFIG = {
             enabled: true,
             email: "",
@@ -651,6 +728,50 @@
         const authSubtitle = document.getElementById('auth-subtitle');
         const unreadBadge = document.getElementById('unread-badge');
 
+        const notifyModeSelect = document.getElementById('notify-mode-select');
+        const notifyStatusDesc = document.getElementById('notify-status-desc');
+
+        function syncNotifyUI() {
+            notifyModeSelect.value = NotifyManager.mode;
+            if (NotifyManager.mode === 'system_and_badge') {
+                notifyStatusDesc.textContent = '当前：手机系统横幅 + 桌面角标红点';
+            } else if (NotifyManager.mode === 'badge_only') {
+                notifyStatusDesc.textContent = '当前：仅角标红点 + 提示音';
+            } else {
+                notifyStatusDesc.textContent = '当前：静音免打扰';
+            }
+        }
+        syncNotifyUI();
+
+        notifyModeSelect.onchange = async () => {
+            NotifyManager.setMode(notifyModeSelect.value);
+            syncNotifyUI();
+            if (notifyModeSelect.value === 'system_and_badge') {
+                const perm = await NotifyManager.requestPermission();
+                if (perm === 'denied') {
+                    alert('系统通知权限被拒绝，请在手机系统设置中开启浏览器/App的通知权限');
+                }
+            }
+            updateGlobalBadge();
+        };
+
+        document.getElementById('test-notify-btn').onclick = async () => {
+            AudioHelper.playMessageSound();
+            if (!('Notification' in window)) {
+                alert('当前环境不支持浏览器系统通知，已播放提示音并更新角标');
+                return;
+            }
+            const perm = await NotifyManager.requestPermission();
+            if (perm !== 'granted') {
+                alert('请先允许通知权限（当前状态：' + perm + '）');
+                return;
+            }
+            new Notification('All Chat 新消息提醒', {
+                body: '这是一条手机通知测试提醒',
+                tag: 'allchat-test'
+            });
+        };
+
         const photoViewerModal = document.getElementById('photo-viewer-modal');
         const photoViewerImg = document.getElementById('photo-viewer-img');
 
@@ -673,12 +794,15 @@
 
         function updateGlobalBadge() {
             totalUnreadCount = Object.values(friendUnreadCounts).reduce((a, b) => a + b, 0);
-            if (totalUnreadCount > 0) {
+            if (totalUnreadCount > 0 && NotifyManager.mode !== 'silent') {
                 unreadBadge.textContent = totalUnreadCount > 99 ? '99+' : totalUnreadCount;
                 unreadBadge.classList.remove('hidden');
+                document.title = `(${totalUnreadCount > 99 ? '99+' : totalUnreadCount}) All Chat 旗舰版`;
             } else {
                 unreadBadge.classList.add('hidden');
+                document.title = 'All Chat 旗舰版';
             }
+            NotifyManager.setAppIconBadge(totalUnreadCount);
         }
 
         togglePwd.onclick = () => {
@@ -774,6 +898,10 @@
                 authView.classList.add('hidden');
                 appContainer.classList.remove('hidden');
 
+                if (NotifyManager.mode === 'system_and_badge') {
+                    NotifyManager.requestPermission();
+                }
+
                 const userRef = doc(db, 'users', user.uid);
                 const snap = await getDoc(userRef);
                 if (!snap.exists()) {
@@ -801,7 +929,6 @@
                 friendUnreadCounts = {};
                 updateGlobalBadge();
 
-                // 首次打开未登录时，保持直接停留在聊天页并尝试静默登录预设账号
                 if (!autoLoginAttempted && AUTO_LOGIN_CONFIG.enabled && AUTO_LOGIN_CONFIG.email && AUTO_LOGIN_CONFIG.password) {
                     autoLoginAttempted = true;
                     appContainer.classList.remove('hidden');
@@ -961,7 +1088,9 @@
                 const firstChar = (f.nickname || f.email || '?')[0].toUpperCase();
                 const avatarHTML = f.avatarUrl ? `<img src="${f.avatarUrl}">` : firstChar;
                 const unread = friendUnreadCounts[f.uid] || 0;
-                const badgeHTML = unread > 0 ? `<div class="friend-unread-badge">${unread > 99 ? '99+' : unread}</div>` : '';
+                const badgeHTML = (unread > 0 && NotifyManager.mode !== 'silent')
+                    ? `<div class="friend-unread-badge">${unread > 99 ? '99+' : unread}</div>`
+                    : '';
 
                 htmlContent += `
                     <div class="friend-item" data-uid="${f.uid}">
@@ -991,6 +1120,13 @@
 
         let cachedFriendsData = [];
 
+        function getPreviewText(msgData) {
+            if (msgData.type === 'image') return '[图片]';
+            if (msgData.type === 'voice') return '[语音消息]';
+            if (msgData.type === 'system_call') return msgData.text || '[通话提醒]';
+            return msgData.text || '发来一条新消息';
+        }
+
         function listenFriends(uid) {
             if (unsubFriends) unsubFriends();
 
@@ -1016,8 +1152,10 @@
                 let tempFriendsData = [];
                 for (const fUid of friendUids) {
                     const fSnap = await getDoc(doc(db, 'users', fUid));
+                    let fInfo = { uid: fUid, nickname: '好友', email: '' };
                     if (fSnap.exists()) {
-                        tempFriendsData.push(fSnap.data());
+                        fInfo = fSnap.data();
+                        tempFriendsData.push(fInfo);
                     }
 
                     const roomId = [uid, fUid].sort().join('_');
@@ -1032,11 +1170,19 @@
                         snap.docChanges().forEach((change) => {
                             if (change.type === 'added') {
                                 const msgData = change.doc.data();
-                                if (msgData.sender !== uid && activeRoomId !== roomId) {
-                                    friendUnreadCounts[fUid] = (friendUnreadCounts[fUid] || 0) + 1;
-                                    updateGlobalBadge();
-                                    renderFriendList(cachedFriendsData);
+                                if (msgData.sender !== uid) {
+                                    const isCurrentChatOpen = (activeRoomId === roomId && document.visibilityState === 'visible');
+                                    if (!isCurrentChatOpen) {
+                                        friendUnreadCounts[fUid] = (friendUnreadCounts[fUid] || 0) + 1;
+                                        updateGlobalBadge();
+                                        renderFriendList(cachedFriendsData);
+                                    }
                                     AudioHelper.playMessageSound();
+                                    NotifyManager.showSystemNotification(
+                                        fInfo.nickname || fInfo.email || 'All Chat 新消息',
+                                        getPreviewText(msgData),
+                                        () => openChat(fInfo)
+                                    );
                                 }
                             }
                         });
@@ -1265,31 +1411,16 @@
             let isFirstLoad = true;
             const q = query(collection(db, 'rooms', activeRoomId, 'messages'), orderBy('createdAt', 'asc'));
             unsubMessages = onSnapshot(q, (snapshot) => {
-                let hasNewMessageFromOther = false;
                 const parsedList = [];
-
                 snapshot.forEach((docSnap) => {
-                    const m = docSnap.data();
-                    parsedList.push({ id: docSnap.id, data: m });
-                    if (!isFirstLoad && m.sender !== currentUser.uid) {
-                        hasNewMessageFromOther = true;
-                    }
+                    parsedList.push({ id: docSnap.id, data: docSnap.data() });
                 });
-
                 latestMessagesCache = parsedList;
                 renderMessagesList(latestMessagesCache);
-
-                if (hasNewMessageFromOther) {
-                    AudioHelper.playMessageSound();
-                    friendUnreadCounts[friendData.uid] = 0;
-                    updateGlobalBadge();
-                }
-
                 isFirstLoad = false;
             });
         }
 
-        // 清空全部聊天记录
         document.getElementById('clear-chat-btn').onclick = async () => {
             if (!activeRoomId || !currentFriendData) return;
             const friendName = currentFriendData.nickname || currentFriendData.email;
@@ -1566,6 +1697,11 @@
 
                         const callerSnap = await getDoc(doc(db, 'users', callData.callerId));
                         const callerName = callerSnap.exists() ? (callerSnap.data().nickname || callerSnap.data().email) : callData.callerName;
+
+                        NotifyManager.showSystemNotification(
+                            callerName,
+                            isVideoCall ? '邀请你进行视频通话...' : '邀请你进行语音通话...'
+                        );
 
                         callModal.classList.remove('hidden');
                         callWaitingView.classList.remove('hidden');
