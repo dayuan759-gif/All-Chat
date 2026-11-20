@@ -9,6 +9,97 @@
         body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .hidden { display: none !important; }
 
+        /* 屏幕顶部浮动通知横幅（每来一条消息都在顶部弹出并累计计数） */
+        #top-banner-container {
+            position: fixed;
+            top: 10px;
+            left: 12px;
+            right: 12px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .top-notify-banner {
+            pointer-events: auto;
+            background: rgba(34, 34, 42, 0.95);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(167, 139, 250, 0.45);
+            border-radius: 16px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.65);
+            animation: slideDownBanner 0.25s ease-out;
+            cursor: pointer;
+        }
+        .top-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        .top-banner-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #fff;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .top-banner-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .top-banner-text { flex: 1; min-width: 0; }
+        .top-banner-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .top-banner-count {
+            background: #fa5151;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 1px 6px;
+            border-radius: 10px;
+        }
+        .top-banner-body {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        .top-banner-close {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: #ccc;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-size: 14px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        @keyframes slideDownBanner {
+            from { transform: translateY(-24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         /* 登录/注册页面 */
         #auth-view { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: #fff; color: #333; z-index: 100; }
         .logo-title { font-size: 28px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
@@ -286,6 +377,9 @@
 </head>
 <body>
 
+    <!-- 屏幕顶部浮动通知横幅容器 -->
+    <div id="top-banner-container"></div>
+
     <!-- 1. 登录 / 注册界面（默认隐藏，打开直接进入聊天页面） -->
     <div id="auth-view" class="hidden">
         <div class="logo-title">All Chat</div>
@@ -381,23 +475,23 @@
                     <div class="settings-row">
                         <div>
                             <div>通知模式</div>
-                            <div style="font-size:11px;color:#888;margin-top:2px;" id="notify-status-desc">当前：手机系统横幅 + 桌面角标红点</div>
+                            <div style="font-size:11px;color:#888;margin-top:2px;" id="notify-status-desc">当前：顶部横幅 + 系统通知 + 角标</div>
                         </div>
                         <select class="settings-select" id="notify-mode-select">
-                            <option value="system_and_badge">手机横幅 + 角标</option>
+                            <option value="system_and_badge">顶部横幅 + 系统通知</option>
                             <option value="badge_only">仅红点角标 + 音效</option>
                             <option value="silent">静音免打扰</option>
                         </select>
                     </div>
                     <div class="settings-row">
-                        <span>测试手机通知提醒</span>
+                        <span>测试连续消息通知</span>
                         <button class="notify-test-btn" id="test-notify-btn">发送测试通知</button>
                     </div>
                     <div class="settings-row">
                         <span>账号安全</span><span style="color:#666;">›</span>
                     </div>
                     <div class="settings-row">
-                        <span>关于 All Chat</span><span style="color:#888;">v2.8</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v2.9</span>
                     </div>
                 </div>
 
@@ -509,8 +603,10 @@
 
     <audio id="remote-audio" autoplay></audio>
 
-    <!-- 通知管理器 + 音频音效器 -->
+    <!-- 通知管理器 + 屏幕顶部叠加横幅 + 音频音效器 -->
     <script>
+        let notifSeq = 0;
+
         const NotifyManager = {
             mode: localStorage.getItem('allchat_notify_mode') || 'system_and_badge',
 
@@ -545,6 +641,66 @@
                 } catch (e) {}
             },
 
+            // 每次来消息都在屏幕顶部弹出/更新横幅，并累计该发送者的连续未读数
+            showTopBanner(friendData, bodyText, unreadCountForFriend, onClickCallback) {
+                if (this.mode === 'silent') return;
+                const container = document.getElementById('top-banner-container');
+                if (!container) return;
+
+                const senderUid = friendData.uid || 'unknown';
+                const senderName = friendData.nickname || friendData.email || '新消息';
+                const avatarChar = senderName[0] ? senderName[0].toUpperCase() : '?';
+                const avatarHtml = friendData.avatarUrl ? `<img src="${friendData.avatarUrl}">` : avatarChar;
+
+                // 若同一个人已有顶部横幅，则更新内容与累计条数并重新播放弹出动画，确保第二条、第三条都可见
+                let banner = container.querySelector(`.top-notify-banner[data-sender-uid="${senderUid}"]`);
+                if (banner) {
+                    banner.remove();
+                }
+
+                banner = document.createElement('div');
+                banner.className = 'top-notify-banner';
+                banner.dataset.senderUid = senderUid;
+
+                const countBadge = unreadCountForFriend > 1
+                    ? `<span class="top-banner-count">${unreadCountForFriend} 条未读</span>`
+                    : `<span class="top-banner-count">新消息</span>`;
+
+                const safeTitle = senderName.replace(/</g, '&lt;');
+                const safeBody = (bodyText || '').replace(/</g, '&lt;');
+
+                banner.innerHTML = `
+                    <div class="top-banner-left">
+                        <div class="top-banner-avatar">${avatarHtml}</div>
+                        <div class="top-banner-text">
+                            <div class="top-banner-title"><span>${safeTitle}</span>${countBadge}</div>
+                            <div class="top-banner-body">${safeBody}</div>
+                        </div>
+                    </div>
+                    <button class="top-banner-close" title="关闭">×</button>
+                `;
+
+                banner.querySelector('.top-banner-left').onclick = () => {
+                    banner.remove();
+                    if (typeof onClickCallback === 'function') onClickCallback();
+                };
+                banner.querySelector('.top-banner-close').onclick = (e) => {
+                    e.stopPropagation();
+                    banner.remove();
+                };
+
+                container.prepend(banner);
+
+                // 最多保留最近3条顶部横幅，避免遮挡整个屏幕
+                while (container.children.length > 3) {
+                    container.removeChild(container.lastChild);
+                }
+
+                setTimeout(() => {
+                    if (banner.parentNode) banner.remove();
+                }, 4500);
+            },
+
             async showSystemNotification(title, body, onClickCallback) {
                 if (this.mode !== 'system_and_badge') return;
                 if (!('Notification' in window)) return;
@@ -556,9 +712,10 @@
                 if (perm !== 'granted') return;
 
                 try {
+                    notifSeq += 1;
                     const n = new Notification(title, {
                         body: body,
-                        tag: 'allchat-msg-' + Date.now(),
+                        tag: `allchat-${notifSeq}-${Date.now()}`,
                         renotify: true
                     });
                     n.onclick = () => {
@@ -734,9 +891,9 @@
         function syncNotifyUI() {
             notifyModeSelect.value = NotifyManager.mode;
             if (NotifyManager.mode === 'system_and_badge') {
-                notifyStatusDesc.textContent = '当前：手机系统横幅 + 桌面角标红点';
+                notifyStatusDesc.textContent = '当前：顶部横幅 + 系统通知 + 角标';
             } else if (NotifyManager.mode === 'badge_only') {
-                notifyStatusDesc.textContent = '当前：仅角标红点 + 提示音';
+                notifyStatusDesc.textContent = '当前：仅红点角标 + 音效';
             } else {
                 notifyStatusDesc.textContent = '当前：静音免打扰';
             }
@@ -755,21 +912,17 @@
             updateGlobalBadge();
         };
 
+        let testCounter = 0;
         document.getElementById('test-notify-btn').onclick = async () => {
+            testCounter += 1;
+            const bodyText = `第 ${testCounter} 条对方消息：你好，这是连续提醒测试`;
             AudioHelper.playMessageSound();
-            if (!('Notification' in window)) {
-                alert('当前环境不支持浏览器系统通知，已播放提示音并更新角标');
-                return;
-            }
-            const perm = await NotifyManager.requestPermission();
-            if (perm !== 'granted') {
-                alert('请先允许通知权限（当前状态：' + perm + '）');
-                return;
-            }
-            new Notification('All Chat 新消息提醒', {
-                body: '这是一条手机通知测试提醒',
-                tag: 'allchat-test'
-            });
+            NotifyManager.showTopBanner(
+                { uid: 'test_friend', nickname: '测试好友', avatarUrl: '' },
+                bodyText,
+                testCounter
+            );
+            await NotifyManager.showSystemNotification('测试好友', bodyText);
         };
 
         const photoViewerModal = document.getElementById('photo-viewer-modal');
@@ -1152,7 +1305,7 @@
                 let tempFriendsData = [];
                 for (const fUid of friendUids) {
                     const fSnap = await getDoc(doc(db, 'users', fUid));
-                    let fInfo = { uid: fUid, nickname: '好友', email: '' };
+                    let fInfo = { uid: fUid, nickname: '好友', email: '', avatarUrl: '' };
                     if (fSnap.exists()) {
                         fInfo = fSnap.data();
                         tempFriendsData.push(fInfo);
@@ -1172,15 +1325,24 @@
                                 const msgData = change.doc.data();
                                 if (msgData.sender !== uid) {
                                     const isCurrentChatOpen = (activeRoomId === roomId && document.visibilityState === 'visible');
+                                    let nextUnread = friendUnreadCounts[fUid] || 0;
                                     if (!isCurrentChatOpen) {
-                                        friendUnreadCounts[fUid] = (friendUnreadCounts[fUid] || 0) + 1;
+                                        nextUnread += 1;
+                                        friendUnreadCounts[fUid] = nextUnread;
                                         updateGlobalBadge();
                                         renderFriendList(cachedFriendsData);
                                     }
+                                    const previewText = getPreviewText(msgData);
                                     AudioHelper.playMessageSound();
+                                    NotifyManager.showTopBanner(
+                                        fInfo,
+                                        previewText,
+                                        Math.max(1, nextUnread),
+                                        () => openChat(fInfo)
+                                    );
                                     NotifyManager.showSystemNotification(
                                         fInfo.nickname || fInfo.email || 'All Chat 新消息',
-                                        getPreviewText(msgData),
+                                        previewText,
                                         () => openChat(fInfo)
                                     );
                                 }
@@ -1396,6 +1558,9 @@
                 updateGlobalBadge();
                 renderFriendList(cachedFriendsData);
             }
+
+            const existingBanner = document.querySelector(`.top-notify-banner[data-sender-uid="${friendData.uid}"]`);
+            if (existingBanner) existingBanner.remove();
 
             document.getElementById('floating-nav').classList.add('hidden-nav');
             document.getElementById('chat-view').classList.remove('hidden');
@@ -1698,6 +1863,11 @@
                         const callerSnap = await getDoc(doc(db, 'users', callData.callerId));
                         const callerName = callerSnap.exists() ? (callerSnap.data().nickname || callerSnap.data().email) : callData.callerName;
 
+                        NotifyManager.showTopBanner(
+                            { uid: callData.callerId, nickname: callerName, avatarUrl: callerSnap.exists() ? callerSnap.data().avatarUrl : '' },
+                            isVideoCall ? '邀请你进行视频通话...' : '邀请你进行语音通话...',
+                            1
+                        );
                         NotifyManager.showSystemNotification(
                             callerName,
                             isVideoCall ? '邀请你进行视频通话...' : '邀请你进行语音通话...'
