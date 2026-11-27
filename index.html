@@ -13,20 +13,42 @@
         .hidden { display: none !important; }
 
         /* 登录/注册页面 */
-        #auth-view { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: #fff; color: #333; z-index: 100; }
-        .logo-title { font-size: 28px; font-weight: bold; color: #7c3aed; margin-bottom: 8px; }
-        .sub-title { font-size: 13px; color: #888; margin-bottom: 32px; }
-        .form-box { width: 100%; max-width: 340px; }
-        .input-group { position: relative; margin-bottom: 16px; }
-        .input-group input { width: 100%; padding: 14px 16px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; background: #fafafa; }
+        #auth-view { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: #fff; color: #333; z-index: 100; overflow-y: auto; }
+        .logo-title { font-size: 28px; font-weight: bold; color: #7c3aed; margin-bottom: 6px; }
+        .sub-title { font-size: 13px; color: #888; margin-bottom: 20px; }
+        .form-box { width: 100%; max-width: 350px; }
+
+        /* 登录方式切换 Tabs */
+        .auth-method-tabs { display: flex; background: #f3f4f6; border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+        .auth-tab-btn { flex: 1; padding: 9px 0; border: none; background: transparent; border-radius: 9px; font-size: 14px; font-weight: 600; color: #666; cursor: pointer; transition: all 0.2s; }
+        .auth-tab-btn.active { background: #fff; color: #7c3aed; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+        .input-group { position: relative; margin-bottom: 14px; }
+        .input-group input { width: 100%; padding: 13px 14px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; background: #fafafa; color: #222; }
         .input-group input:focus { border-color: #7c3aed; background: #fff; }
+
+        /* 手机号区号组合框 */
+        .phone-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .country-select { padding: 13px 10px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 14px; font-weight: 600; background: #fafafa; color: #222; outline: none; flex-shrink: 0; }
+        .country-select:focus { border-color: #7c3aed; background: #fff; }
+        .phone-row input { flex: 1; min-width: 0; padding: 13px 14px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; background: #fafafa; color: #222; }
+        .phone-row input:focus { border-color: #7c3aed; background: #fff; }
+
+        /* 短信验证码行 */
+        .otp-row { display: flex; gap: 8px; margin-bottom: 14px; }
+        .otp-row input { flex: 1; min-width: 0; padding: 13px 14px; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; outline: none; background: #fafafa; color: #222; letter-spacing: 2px; }
+        .otp-row input:focus { border-color: #7c3aed; background: #fff; }
+        .send-code-btn { padding: 0 14px; background: #ede9fe; color: #7c3aed; border: 1px solid #ddd6fe; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; }
+        .send-code-btn:disabled { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: not-allowed; }
+
         .toggle-pwd { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #7c3aed; font-size: 13px; cursor: pointer; user-select: none; }
-        .primary-btn { width: 100%; padding: 14px; background-color: #7c3aed; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+        .primary-btn { width: 100%; padding: 14px; background-color: #7c3aed; color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
         .primary-btn:active { background-color: #6d28d9; }
         .primary-btn:disabled { background-color: #c4b5fd; cursor: not-allowed; }
         .auth-links { display: flex; justify-content: space-between; margin-top: 16px; font-size: 13px; color: #6d28d9; }
         .auth-links span { cursor: pointer; }
         .status-tip { text-align: center; font-size: 13px; color: #fa5151; margin-bottom: 12px; min-height: 18px; word-break: break-all; }
+        .status-tip.success { color: #10b981; }
 
         /* 主容器与视图切换 */
         .app-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
@@ -292,30 +314,58 @@
 </head>
 <body>
 
-    <!-- 1. 登录 / 注册界面（默认隐藏，打开直接进入聊天页面） -->
+    <!-- 1. 登录 / 注册界面（支持 泰国 +66 / 缅甸 +95 手机号 & 电子邮箱） -->
     <div id="auth-view" class="hidden">
         <div class="logo-title">All Chat</div>
-        <div class="sub-title" id="auth-subtitle">使用电子邮箱登录你的账号</div>
+        <div class="sub-title" id="auth-subtitle">使用泰国/缅甸手机号验证码登录或注册</div>
         
         <div class="form-box">
+            <div class="auth-method-tabs">
+                <button type="button" class="auth-tab-btn active" id="tab-method-phone">📱 手机号登录/注册</button>
+                <button type="button" class="auth-tab-btn" id="tab-method-email">✉️ 邮箱登录/注册</button>
+            </div>
+
             <div class="status-tip" id="status-tip"></div>
-            
-            <div class="input-group hidden" id="nickname-group">
-                <input type="text" id="nickname-input" placeholder="请输入你的昵称">
-            </div>
-            <div class="input-group">
-                <input type="email" id="email-input" placeholder="请输入电子邮箱" autocapitalize="none">
-            </div>
-            <div class="input-group">
-                <input type="password" id="pwd-input" placeholder="请输入密码（至少6位）">
-                <span class="toggle-pwd" id="toggle-pwd">显示</span>
+
+            <!-- 手机号区域（泰国 +66 / 缅甸 +95） -->
+            <div id="phone-auth-section">
+                <div class="input-group">
+                    <input type="text" id="phone-nickname-input" placeholder="昵称（新号注册时填写，老号可不填）">
+                </div>
+                <div class="phone-row">
+                    <select id="country-code-select" class="country-select">
+                        <option value="+66">🇹🇭 +66 泰国</option>
+                        <option value="+95">🇲🇲 +95 缅甸</option>
+                    </select>
+                    <input type="tel" id="phone-number-input" placeholder="输入手机号（如 08... 或 09...）" inputmode="tel">
+                </div>
+                <div class="otp-row">
+                    <input type="text" id="sms-code-input" placeholder="6位短信验证码" maxlength="6" inputmode="numeric">
+                    <button type="button" class="send-code-btn" id="send-sms-btn">获取验证码</button>
+                </div>
+                <button type="button" class="primary-btn" id="phone-submit-btn">验证并登录 / 注册</button>
+                <div id="recaptcha-container"></div>
             </div>
 
-            <button class="primary-btn" id="submit-btn">登 录</button>
+            <!-- 电子邮箱区域 -->
+            <div id="email-auth-section" class="hidden">
+                <div class="input-group hidden" id="nickname-group">
+                    <input type="text" id="nickname-input" placeholder="请输入你的昵称">
+                </div>
+                <div class="input-group">
+                    <input type="email" id="email-input" placeholder="请输入电子邮箱" autocapitalize="none">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="pwd-input" placeholder="请输入密码（至少6位）">
+                    <span class="toggle-pwd" id="toggle-pwd">显示</span>
+                </div>
 
-            <div class="auth-links">
-                <span id="forgot-btn">忘记密码?</span>
-                <span id="switch-mode-btn">没有账号? 立即注册</span>
+                <button type="button" class="primary-btn" id="submit-btn">登 录</button>
+
+                <div class="auth-links">
+                    <span id="forgot-btn">忘记密码?</span>
+                    <span id="switch-mode-btn">没有账号? 立即注册</span>
+                </div>
             </div>
         </div>
     </div>
@@ -374,8 +424,8 @@
                 </div>
 
                 <div class="profile-info-group">
-                    <div class="profile-info-label">电子邮箱 / 账号</div>
-                    <div class="profile-info-val" id="settings-email">---</div>
+                    <div class="profile-info-label">绑定账号（手机 / 邮箱）</div>
+                    <div class="profile-info-val" id="settings-account">---</div>
                 </div>
 
                 <div class="profile-info-group clickable" id="edit-username-card" title="点击修改用户名">
@@ -406,7 +456,7 @@
                         <span>账号安全</span><span style="color:#666;">›</span>
                     </div>
                     <div class="settings-row">
-                        <span>关于 All Chat</span><span style="color:#888;">v3.0</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v3.1</span>
                     </div>
                 </div>
 
@@ -556,7 +606,6 @@
                 } catch (e) {}
             },
 
-            // 每次收到消息都生成独立 tag 触发手机系统通知横幅
             async showSystemNotification(title, body, onClickCallback) {
                 if (this.mode !== 'system_and_badge') return;
                 if (!('Notification' in window)) return;
@@ -666,10 +715,28 @@
     <!-- Firebase 与主逻辑 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getAuth,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            sendPasswordResetEmail,
+            RecaptchaVerifier,
+            signInWithPhoneNumber
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, onSnapshot, collection, query, where, getDocs, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const statusTip = document.getElementById('status-tip');
+
+        function setStatus(msg, isSuccess = false) {
+            statusTip.textContent = msg || '';
+            if (isSuccess) {
+                statusTip.classList.add('success');
+            } else {
+                statusTip.classList.remove('success');
+            }
+        }
 
         const AUTO_LOGIN_CONFIG = {
             enabled: true,
@@ -691,9 +758,10 @@
         try {
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
+            auth.languageCode = 'zh-CN';
             db = getFirestore(app);
         } catch (err) {
-            statusTip.textContent = "Firebase初始化错误: " + err.message;
+            setStatus("Firebase初始化错误: " + err.message);
         }
 
         let isRegister = false;
@@ -704,6 +772,10 @@
         let unsubCallLogs = null;
         let activeRoomId = null;
         let currentFriendData = null;
+
+        let confirmationResultObj = null;
+        let recaptchaVerifierInstance = null;
+        let smsCountdownTimer = null;
 
         let isSelectMode = false;
         let selectedMsgIds = new Set();
@@ -733,6 +805,18 @@
 
         const authView = document.getElementById('auth-view');
         const appContainer = document.getElementById('app-container');
+        const tabMethodPhone = document.getElementById('tab-method-phone');
+        const tabMethodEmail = document.getElementById('tab-method-email');
+        const phoneAuthSection = document.getElementById('phone-auth-section');
+        const emailAuthSection = document.getElementById('email-auth-section');
+
+        const phoneNicknameInput = document.getElementById('phone-nickname-input');
+        const countryCodeSelect = document.getElementById('country-code-select');
+        const phoneNumberInput = document.getElementById('phone-number-input');
+        const smsCodeInput = document.getElementById('sms-code-input');
+        const sendSmsBtn = document.getElementById('send-sms-btn');
+        const phoneSubmitBtn = document.getElementById('phone-submit-btn');
+
         const nicknameGroup = document.getElementById('nickname-group');
         const nicknameInput = document.getElementById('nickname-input');
         const emailInput = document.getElementById('email-input');
@@ -742,6 +826,146 @@
         const switchModeBtn = document.getElementById('switch-mode-btn');
         const authSubtitle = document.getElementById('auth-subtitle');
         const unreadBadge = document.getElementById('unread-badge');
+
+        // 切换 手机号 / 邮箱 登录方式
+        tabMethodPhone.onclick = () => {
+            tabMethodPhone.classList.add('active');
+            tabMethodEmail.classList.remove('active');
+            phoneAuthSection.classList.remove('hidden');
+            emailAuthSection.classList.add('hidden');
+            authSubtitle.textContent = '使用泰国 (+66) / 缅甸 (+95) 手机号验证码登录或注册';
+            setStatus('');
+        };
+
+        tabMethodEmail.onclick = () => {
+            tabMethodEmail.classList.add('active');
+            tabMethodPhone.classList.remove('active');
+            emailAuthSection.classList.remove('hidden');
+            phoneAuthSection.classList.add('hidden');
+            authSubtitle.textContent = isRegister ? '创建一个新的 All Chat 邮箱账号' : '使用电子邮箱登录你的账号';
+            setStatus('');
+        };
+
+        // 规范化泰国(+66)与缅甸(+95)手机号，自动去掉前导0
+        function formatPhoneWithCountry(countryCode, rawNumber) {
+            let digits = rawNumber.replace(/[^\d]/g, '');
+            if (!digits) return '';
+            if (digits.startsWith('66') && countryCode === '+66' && digits.length >= 10) {
+                digits = digits.slice(2);
+            } else if (digits.startsWith('95') && countryCode === '+95' && digits.length >= 9) {
+                digits = digits.slice(2);
+            }
+            if (digits.startsWith('0')) {
+                digits = digits.slice(1);
+            }
+            return countryCode + digits;
+        }
+
+        function ensureRecaptcha() {
+            if (!recaptchaVerifierInstance) {
+                recaptchaVerifierInstance = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                    size: 'invisible',
+                    callback: () => {}
+                });
+            }
+            return recaptchaVerifierInstance;
+        }
+
+        function startSmsCountdown(seconds = 60) {
+            let left = seconds;
+            sendSmsBtn.disabled = true;
+            sendSmsBtn.textContent = `${left}s 后重发`;
+            if (smsCountdownTimer) clearInterval(smsCountdownTimer);
+            smsCountdownTimer = setInterval(() => {
+                left -= 1;
+                if (left <= 0) {
+                    clearInterval(smsCountdownTimer);
+                    smsCountdownTimer = null;
+                    sendSmsBtn.disabled = false;
+                    sendSmsBtn.textContent = '重新获取';
+                } else {
+                    sendSmsBtn.textContent = `${left}s 后重发`;
+                }
+            }, 1000);
+        }
+
+        // 发送泰国 / 缅甸短信验证码
+        sendSmsBtn.onclick = async () => {
+            AudioHelper.init();
+            const countryCode = countryCodeSelect.value;
+            const fullPhone = formatPhoneWithCountry(countryCode, phoneNumberInput.value);
+
+            if (!fullPhone || fullPhone.length < 10) {
+                setStatus('请输入有效的泰国或缅甸手机号码');
+                return;
+            }
+
+            setStatus('');
+            sendSmsBtn.disabled = true;
+            sendSmsBtn.textContent = '发送中...';
+
+            try {
+                const verifier = ensureRecaptcha();
+                confirmationResultObj = await signInWithPhoneNumber(auth, fullPhone, verifier);
+                setStatus(`验证码已发送至 ${fullPhone}，请查收短信`, true);
+                startSmsCountdown(60);
+            } catch (err) {
+                if (recaptchaVerifierInstance) {
+                    try { recaptchaVerifierInstance.clear(); } catch (e) {}
+                    recaptchaVerifierInstance = null;
+                }
+                sendSmsBtn.disabled = false;
+                sendSmsBtn.textContent = '获取验证码';
+                setStatus('短信发送失败: ' + err.message);
+            }
+        };
+
+        // 校验短信验证码并登录/注册
+        phoneSubmitBtn.onclick = async () => {
+            AudioHelper.init();
+            const code = smsCodeInput.value.trim();
+            if (!confirmationResultObj) {
+                setStatus('请先点击“获取验证码”');
+                return;
+            }
+            if (code.length < 6) {
+                setStatus('请输入6位短信验证码');
+                return;
+            }
+
+            phoneSubmitBtn.disabled = true;
+            phoneSubmitBtn.textContent = '验证中...';
+            setStatus('');
+
+            try {
+                const cred = await confirmationResultObj.confirm(code);
+                const user = cred.user;
+                const userRef = doc(db, 'users', user.uid);
+                const snap = await getDoc(userRef);
+
+                const inputNick = phoneNicknameInput.value.trim();
+                const phoneStr = user.phoneNumber || formatPhoneWithCountry(countryCodeSelect.value, phoneNumberInput.value);
+                const tailDigits = phoneStr.replace(/[^\d]/g, '').slice(-6);
+
+                if (!snap.exists()) {
+                    await setDoc(userRef, {
+                        uid: user.uid,
+                        phone: phoneStr,
+                        email: '',
+                        nickname: inputNick || ('用户' + tailDigits),
+                        username: '@u' + tailDigits,
+                        avatarUrl: '',
+                        friends: []
+                    });
+                } else if (inputNick) {
+                    await updateDoc(userRef, { nickname: inputNick });
+                }
+            } catch (err) {
+                setStatus('验证码错误或已过期: ' + err.message);
+                phoneSubmitBtn.disabled = false;
+                phoneSubmitBtn.textContent = '验证并登录 / 注册';
+            }
+        };
 
         const notifyModeSelect = document.getElementById('notify-mode-select');
         const notifyStatusDesc = document.getElementById('notify-status-desc');
@@ -823,7 +1047,7 @@
 
         switchModeBtn.onclick = () => {
             isRegister = !isRegister;
-            statusTip.textContent = '';
+            setStatus('');
             if (isRegister) {
                 nicknameGroup.classList.remove('hidden');
                 submitBtn.textContent = '立即注册';
@@ -840,14 +1064,14 @@
         document.getElementById('forgot-btn').onclick = async () => {
             const email = emailInput.value.trim();
             if (!email) {
-                statusTip.textContent = '请先在上方输入你的电子邮箱';
+                setStatus('请先在上方输入你的电子邮箱');
                 return;
             }
             try {
                 await sendPasswordResetEmail(auth, email);
                 alert('密码重置邮件已发送至你的邮箱，请查收！');
             } catch (e) {
-                statusTip.textContent = '发送失败: ' + e.message;
+                setStatus('发送失败: ' + e.message);
             }
         };
 
@@ -858,18 +1082,18 @@
             const nickname = nicknameInput.value.trim();
 
             if (!email || pwd.length < 6) {
-                statusTip.textContent = '请输入有效邮箱和至少6位密码';
+                setStatus('请输入有效邮箱和至少6位密码');
                 return;
             }
 
             submitBtn.disabled = true;
             submitBtn.textContent = '连接中...';
-            statusTip.textContent = '';
+            setStatus('');
 
             try {
                 if (isRegister) {
                     if (!nickname) {
-                        statusTip.textContent = '请输入昵称';
+                        setStatus('请输入昵称');
                         submitBtn.disabled = false;
                         submitBtn.textContent = '立即注册';
                         return;
@@ -878,6 +1102,7 @@
                     await setDoc(doc(db, 'users', cred.user.uid), {
                         uid: cred.user.uid,
                         email: email,
+                        phone: '',
                         nickname: nickname,
                         username: '@' + email.split('@')[0],
                         avatarUrl: '',
@@ -887,7 +1112,7 @@
                     await signInWithEmailAndPassword(auth, email, pwd);
                 }
             } catch (e) {
-                statusTip.textContent = '登录/注册失败: ' + e.message;
+                setStatus('登录/注册失败: ' + e.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = isRegister ? '立即注册' : '登 录';
             }
@@ -898,6 +1123,8 @@
         onAuthStateChanged(auth, async (user) => {
             submitBtn.disabled = false;
             submitBtn.textContent = isRegister ? '立即注册' : '登 录';
+            phoneSubmitBtn.disabled = false;
+            phoneSubmitBtn.textContent = '验证并登录 / 注册';
 
             if (user) {
                 currentUser = user;
@@ -911,11 +1138,19 @@
                 const userRef = doc(db, 'users', user.uid);
                 const snap = await getDoc(userRef);
                 if (!snap.exists()) {
+                    const defaultNick = user.email
+                        ? user.email.split('@')[0]
+                        : ('用户' + (user.phoneNumber || user.uid).slice(-6));
+                    const defaultUname = user.email
+                        ? ('@' + user.email.split('@')[0])
+                        : ('@u' + (user.phoneNumber || user.uid).replace(/[^\d]/g, '').slice(-6));
+
                     await setDoc(userRef, {
                         uid: user.uid,
-                        email: user.email,
-                        nickname: user.email.split('@')[0],
-                        username: '@' + user.email.split('@')[0],
+                        email: user.email || '',
+                        phone: user.phoneNumber || '',
+                        nickname: defaultNick,
+                        username: defaultUname,
                         avatarUrl: '',
                         friends: []
                     });
@@ -946,7 +1181,7 @@
                     } catch (err) {
                         appContainer.classList.add('hidden');
                         authView.classList.remove('hidden');
-                        statusTip.textContent = '自动登录失败，请手动登录';
+                        setStatus('自动登录失败，请手动登录');
                         return;
                     }
                 }
@@ -1023,10 +1258,9 @@
             return available;
         }
 
-        // 单独修改用户名（点击设置页“用户名 (UID / 昵称)”卡片触发）
         async function handleEditUsername() {
             if (!currentUser) return;
-            const currentVal = (currentProfileData && currentProfileData.username) || ('@' + currentUser.email.split('@')[0]);
+            const currentVal = (currentProfileData && currentProfileData.username) || '@user';
             const input = prompt('请输入新的用户名（字母/数字/下划线，自动带 @）：', currentVal);
             if (input === null) return;
 
@@ -1055,10 +1289,9 @@
             }
         }
 
-        // 单独修改昵称（点击头像下方昵称触发）
         async function handleEditNickname() {
             if (!currentUser) return;
-            const currentNick = (currentProfileData && currentProfileData.nickname) || currentUser.email.split('@')[0];
+            const currentNick = (currentProfileData && currentProfileData.nickname) || '用户';
             const newNick = prompt('请输入新的显示昵称：', currentNick);
             if (newNick === null) return;
             const trimmed = newNick.trim();
@@ -1081,8 +1314,8 @@
 
         document.getElementById('edit-profile-btn').onclick = async () => {
             if (!currentUser) return;
-            const currentNick = (currentProfileData && currentProfileData.nickname) || currentUser.email.split('@')[0];
-            const currentUname = (currentProfileData && currentProfileData.username) || ('@' + currentUser.email.split('@')[0]);
+            const currentNick = (currentProfileData && currentProfileData.nickname) || '用户';
+            const currentUname = (currentProfileData && currentProfileData.username) || '@user';
 
             const newNick = prompt('请输入新的昵称（名字）：', currentNick);
             if (newNick === null) return;
@@ -1130,24 +1363,22 @@
             avatarFileInput.value = '';
         };
 
-        // 支持通过“电子邮箱”或“@用户名”搜索添加好友
+        // 支持通过“泰国/缅甸手机号 (+66/+95)”、“电子邮箱”或“@用户名”添加好友
         async function handleAddFriend() {
             if (!currentUser) {
                 alert('账号正在连接中，请稍后再试');
                 return;
             }
-            const targetInput = prompt('请输入好友的电子邮箱 或 @用户名：');
+            const targetInput = prompt('请输入好友的：\n• 手机号（如 +668... / +959...）\n• 电子邮箱\n• @用户名');
             if (!targetInput) return;
             const cleanInput = targetInput.trim();
 
-            if (cleanInput === currentUser.email || (currentProfileData && normalizeUsername(cleanInput) === currentProfileData.username)) {
-                alert('不能添加自己为好友！');
-                return;
-            }
-
             try {
                 let q;
-                if (cleanInput.includes('@') && !cleanInput.startsWith('@')) {
+                if (cleanInput.startsWith('+')) {
+                    const normalizedPhone = '+' + cleanInput.replace(/[^\d]/g, '');
+                    q = query(collection(db, 'users'), where('phone', '==', normalizedPhone));
+                } else if (cleanInput.includes('@') && !cleanInput.startsWith('@')) {
                     q = query(collection(db, 'users'), where('email', '==', cleanInput));
                 } else {
                     const searchUsername = normalizeUsername(cleanInput);
@@ -1157,7 +1388,7 @@
                 const querySnap = await getDocs(q);
 
                 if (querySnap.empty) {
-                    alert('找不到该账号，请确认对方邮箱或 @用户名 输入正确！');
+                    alert('找不到该账号，请确认对方手机号（带+66或+95）、邮箱或 @用户名 输入正确！');
                     return;
                 }
 
@@ -1196,13 +1427,14 @@
 
             let htmlContent = '';
             friendsData.forEach(f => {
-                const firstChar = (f.nickname || f.email || '?')[0].toUpperCase();
+                const contactLabel = f.phone || f.email || '';
+                const firstChar = (f.nickname || contactLabel || '?')[0].toUpperCase();
                 const avatarHTML = f.avatarUrl ? `<img src="${f.avatarUrl}">` : firstChar;
                 const unread = friendUnreadCounts[f.uid] || 0;
                 const badgeHTML = (unread > 0 && NotifyManager.mode !== 'silent')
                     ? `<div class="friend-unread-badge">${unread > 99 ? '99+' : unread}</div>`
                     : '';
-                const subLine = f.username ? `${escapeHtml(f.username)} · ${escapeHtml(f.email)}` : escapeHtml(f.email);
+                const subLine = [f.username, contactLabel].filter(Boolean).map(escapeHtml).join(' · ');
 
                 htmlContent += `
                     <div class="friend-item" data-uid="${f.uid}">
@@ -1248,8 +1480,9 @@
                 currentProfileData = data;
                 
                 document.getElementById('settings-nickname').textContent = data.nickname || '用户';
-                document.getElementById('settings-email').textContent = data.email || '';
-                document.getElementById('settings-username').textContent = data.username || ('@' + data.email.split('@')[0]);
+                const accountParts = [data.phone, data.email].filter(Boolean);
+                document.getElementById('settings-account').textContent = accountParts.length > 0 ? accountParts.join(' / ') : '---';
+                document.getElementById('settings-username').textContent = data.username || '@user';
 
                 if (data.avatarUrl) {
                     settingsAvatar.innerHTML = `<img src="${data.avatarUrl}">`;
@@ -1265,7 +1498,7 @@
                 let tempFriendsData = [];
                 for (const fUid of friendUids) {
                     const fSnap = await getDoc(doc(db, 'users', fUid));
-                    let fInfo = { uid: fUid, nickname: '好友', email: '', username: '', avatarUrl: '' };
+                    let fInfo = { uid: fUid, nickname: '好友', email: '', phone: '', username: '', avatarUrl: '' };
                     if (fSnap.exists()) {
                         fInfo = fSnap.data();
                         tempFriendsData.push(fInfo);
@@ -1290,7 +1523,7 @@
                                         updateGlobalBadge();
                                         renderFriendList(cachedFriendsData);
                                     }
-                                    const senderLabel = fInfo.nickname || fInfo.email || 'All Chat 新消息';
+                                    const senderLabel = fInfo.nickname || fInfo.phone || fInfo.email || 'All Chat 新消息';
                                     const bodyText = `from All Chat 旗舰版 · ${getPreviewText(msgData)}`;
                                     AudioHelper.playMessageSound();
                                     await NotifyManager.showSystemNotification(
@@ -1514,7 +1747,7 @@
 
             document.getElementById('floating-nav').classList.add('hidden-nav');
             document.getElementById('chat-view').classList.remove('hidden');
-            document.getElementById('chat-friend-name').textContent = friendData.nickname || friendData.email;
+            document.getElementById('chat-friend-name').textContent = friendData.nickname || friendData.phone || friendData.email;
 
             activeRoomId = [currentUser.uid, friendData.uid].sort().join('_');
 
@@ -1538,7 +1771,7 @@
 
         document.getElementById('clear-chat-btn').onclick = async () => {
             if (!activeRoomId || !currentFriendData) return;
-            const friendName = currentFriendData.nickname || currentFriendData.email;
+            const friendName = currentFriendData.nickname || currentFriendData.phone || currentFriendData.email;
             const confirmed = confirm(`确定要删除与“${friendName}”的所有聊天记录吗？删除后无法恢复。`);
             if (!confirmed) return;
 
@@ -1723,7 +1956,7 @@
             document.getElementById('hangup-call-btn').onclick = () => {
                 if (isHangingUp) return;
                 isHangingUp = true;
-                recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.email, isVideoCall, '已取消 / 未接通');
+                recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.phone || currentFriendData.email, isVideoCall, '已取消 / 未接通');
                 cancelCallRecord('通话已取消');
             };
 
@@ -1759,7 +1992,7 @@
 
                 await setDoc(callDocRef, {
                     callerId: currentUser.uid,
-                    callerName: currentUser.email,
+                    callerName: (currentProfileData && currentProfileData.nickname) || currentUser.phoneNumber || currentUser.email,
                     receiverId: currentFriendData.uid,
                     offer: { type: offer.type, sdp: offer.sdp },
                     isVideo: isVideoCall,
@@ -1780,7 +2013,7 @@
                     }
                     if (data.status === 'hungup' && !isHangingUp) {
                         isHangingUp = true;
-                        recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.email, isVideoCall, '已完成');
+                        recordCallLog(currentFriendData.uid, currentFriendData.nickname || currentFriendData.phone || currentFriendData.email, isVideoCall, '已完成');
                         hangUpCall();
                     }
                 });
@@ -1811,7 +2044,9 @@
                         startRingLoop();
 
                         const callerSnap = await getDoc(doc(db, 'users', callData.callerId));
-                        const callerName = callerSnap.exists() ? (callerSnap.data().nickname || callerSnap.data().email) : callData.callerName;
+                        const callerName = callerSnap.exists()
+                            ? (callerSnap.data().nickname || callerSnap.data().phone || callerSnap.data().email)
+                            : callData.callerName;
 
                         await NotifyManager.showSystemNotification(
                             callerName,
@@ -1967,7 +2202,7 @@
         }
 
         function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+            return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
         }
     </script>
 </body>
