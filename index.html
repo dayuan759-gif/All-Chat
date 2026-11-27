@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="All Chat 旗舰版">
-    <title>All Chat </title>
+    <title>All Chat 旗舰版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: #121212; color: #fff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -53,12 +53,15 @@
         .profile-hero { display: flex; flex-direction: column; align-items: center; padding: 20px 0; background: rgba(255,255,255,0.03); border-radius: 20px; margin-bottom: 16px; border: 1px solid rgba(255,255,255,0.06); position: relative; }
         .profile-avatar-large { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #06b6d4, #3b82f6); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4); overflow: hidden; cursor: pointer; object-fit: cover; }
         .profile-avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-        .profile-name-text { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .profile-name-text { font-size: 20px; font-weight: 600; color: #fff; margin-bottom: 4px; cursor: pointer; }
         .profile-status-text { font-size: 13px; color: #10b981; margin-bottom: 16px; }
         
-        .profile-info-group { width: 92%; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+        .profile-info-group { width: 100%; background: rgba(255,255,255,0.04); border-radius: 14px; padding: 12px 16px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.06); }
+        .profile-info-group.clickable { cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s ease; }
+        .profile-info-group.clickable:active { background: rgba(255,255,255,0.09); }
         .profile-info-label { font-size: 12px; color: #888; margin-bottom: 4px; }
         .profile-info-val { font-size: 15px; color: #fff; }
+        .profile-edit-hint { font-size: 13px; color: #a78bfa; flex-shrink: 0; }
 
         .edit-profile-btn { position: absolute; right: 16px; top: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; }
         .edit-profile-btn:active { background: rgba(255,255,255,0.2); }
@@ -366,7 +369,7 @@
                     <button class="edit-profile-btn" id="edit-profile-btn">编辑资料</button>
                     <div class="profile-avatar-large" id="settings-avatar" title="点击更换头像">我</div>
                     <input type="file" id="avatar-file-input" accept="image/*" class="hidden">
-                    <div class="profile-name-text" id="settings-nickname">加载中...</div>
+                    <div class="profile-name-text" id="settings-nickname" title="点击修改昵称">加载中...</div>
                     <div class="profile-status-text">● 在线</div>
                 </div>
 
@@ -375,9 +378,12 @@
                     <div class="profile-info-val" id="settings-email">---</div>
                 </div>
 
-                <div class="profile-info-group">
-                    <div class="profile-info-label">用户名 (UID / 昵称)</div>
-                    <div class="profile-info-val" id="settings-username">@---</div>
+                <div class="profile-info-group clickable" id="edit-username-card" title="点击修改用户名">
+                    <div>
+                        <div class="profile-info-label">用户名 (UID / 昵称)</div>
+                        <div class="profile-info-val" id="settings-username">@---</div>
+                    </div>
+                    <span class="profile-edit-hint">修改 ›</span>
                 </div>
 
                 <div class="settings-card">
@@ -424,7 +430,7 @@
                 <span class="badge-bubble hidden" id="unread-badge">0</span>
             </button>
             <button class="nav-item" data-target="tab-settings">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                 <span>设置</span>
             </button>
         </div>
@@ -692,6 +698,7 @@
 
         let isRegister = false;
         let currentUser = null;
+        let currentProfileData = null;
         let unsubFriends = null;
         let unsubMessages = null;
         let unsubCallLogs = null;
@@ -919,6 +926,7 @@
                 listenCallLogs(user.uid);
             } else {
                 currentUser = null;
+                currentProfileData = null;
                 if (unsubFriends) unsubFriends();
                 if (unsubMessages) unsubMessages();
                 if (unsubCall) unsubCall();
@@ -994,18 +1002,109 @@
             });
         }
 
-        document.getElementById('edit-profile-btn').onclick = async () => {
+        function normalizeUsername(raw) {
+            let clean = raw.trim().replace(/\s+/g, '');
+            if (!clean) return '';
+            if (!clean.startsWith('@')) {
+                clean = '@' + clean;
+            }
+            return clean;
+        }
+
+        async function isUsernameAvailable(formattedUsername) {
+            const q = query(collection(db, 'users'), where('username', '==', formattedUsername));
+            const snap = await getDocs(q);
+            let available = true;
+            snap.forEach((d) => {
+                if (d.id !== currentUser.uid) {
+                    available = false;
+                }
+            });
+            return available;
+        }
+
+        // 单独修改用户名（点击设置页“用户名 (UID / 昵称)”卡片触发）
+        async function handleEditUsername() {
             if (!currentUser) return;
-            const newNick = prompt('请输入新的昵称（名字）：');
-            if (newNick === null) return;
-            const newUsername = prompt('请输入新的用户名（例如 @username）：');
-            if (newUsername === null) return;
+            const currentVal = (currentProfileData && currentProfileData.username) || ('@' + currentUser.email.split('@')[0]);
+            const input = prompt('请输入新的用户名（字母/数字/下划线，自动带 @）：', currentVal);
+            if (input === null) return;
+
+            const formatted = normalizeUsername(input);
+            if (!formatted || formatted === '@') {
+                alert('用户名不能为空！');
+                return;
+            }
+            if (formatted.length < 3) {
+                alert('用户名至少需要2个字符（不含 @）');
+                return;
+            }
 
             try {
+                const available = await isUsernameAvailable(formatted);
+                if (!available) {
+                    alert(`用户名 ${formatted} 已被其他用户使用，请换一个！`);
+                    return;
+                }
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    username: formatted
+                });
+                alert(`用户名已成功修改为 ${formatted}`);
+            } catch (e) {
+                alert('修改用户名失败: ' + e.message);
+            }
+        }
+
+        // 单独修改昵称（点击头像下方昵称触发）
+        async function handleEditNickname() {
+            if (!currentUser) return;
+            const currentNick = (currentProfileData && currentProfileData.nickname) || currentUser.email.split('@')[0];
+            const newNick = prompt('请输入新的显示昵称：', currentNick);
+            if (newNick === null) return;
+            const trimmed = newNick.trim();
+            if (!trimmed) {
+                alert('昵称不能为空！');
+                return;
+            }
+            try {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    nickname: trimmed
+                });
+                alert('昵称修改成功！');
+            } catch (e) {
+                alert('修改昵称失败: ' + e.message);
+            }
+        }
+
+        document.getElementById('edit-username-card').onclick = handleEditUsername;
+        document.getElementById('settings-nickname').onclick = handleEditNickname;
+
+        document.getElementById('edit-profile-btn').onclick = async () => {
+            if (!currentUser) return;
+            const currentNick = (currentProfileData && currentProfileData.nickname) || currentUser.email.split('@')[0];
+            const currentUname = (currentProfileData && currentProfileData.username) || ('@' + currentUser.email.split('@')[0]);
+
+            const newNick = prompt('请输入新的昵称（名字）：', currentNick);
+            if (newNick === null) return;
+            const newUsernameRaw = prompt('请输入新的用户名（例如 @username）：', currentUname);
+            if (newUsernameRaw === null) return;
+
+            const formattedUsername = normalizeUsername(newUsernameRaw) || currentUname;
+            if (formattedUsername.length < 3) {
+                alert('用户名至少需要2个字符（不含 @）');
+                return;
+            }
+
+            try {
+                const available = await isUsernameAvailable(formattedUsername);
+                if (!available) {
+                    alert(`用户名 ${formattedUsername} 已被其他用户使用，请换一个！`);
+                    return;
+                }
                 const userRef = doc(db, 'users', currentUser.uid);
                 await updateDoc(userRef, {
-                    nickname: newNick.trim() || currentUser.email.split('@')[0],
-                    username: newUsername.trim() || ('@' + currentUser.email.split('@')[0])
+                    nickname: newNick.trim() || currentNick,
+                    username: formattedUsername
                 });
                 alert('个人资料修改成功！');
             } catch (e) {
@@ -1031,31 +1130,44 @@
             avatarFileInput.value = '';
         };
 
+        // 支持通过“电子邮箱”或“@用户名”搜索添加好友
         async function handleAddFriend() {
             if (!currentUser) {
                 alert('账号正在连接中，请稍后再试');
                 return;
             }
-            const targetEmail = prompt('请输入好友的电子邮箱：');
-            if (!targetEmail) return;
-            const cleanEmail = targetEmail.trim();
+            const targetInput = prompt('请输入好友的电子邮箱 或 @用户名：');
+            if (!targetInput) return;
+            const cleanInput = targetInput.trim();
 
-            if (cleanEmail === currentUser.email) {
+            if (cleanInput === currentUser.email || (currentProfileData && normalizeUsername(cleanInput) === currentProfileData.username)) {
                 alert('不能添加自己为好友！');
                 return;
             }
 
             try {
-                const q = query(collection(db, 'users'), where('email', '==', cleanEmail));
+                let q;
+                if (cleanInput.includes('@') && !cleanInput.startsWith('@')) {
+                    q = query(collection(db, 'users'), where('email', '==', cleanInput));
+                } else {
+                    const searchUsername = normalizeUsername(cleanInput);
+                    q = query(collection(db, 'users'), where('username', '==', searchUsername));
+                }
+
                 const querySnap = await getDocs(q);
 
                 if (querySnap.empty) {
-                    alert('找不到该邮箱账号，请确认对方已注册！');
+                    alert('找不到该账号，请确认对方邮箱或 @用户名 输入正确！');
                     return;
                 }
 
                 let targetUid = '';
                 querySnap.forEach(d => { targetUid = d.id; });
+
+                if (targetUid === currentUser.uid) {
+                    alert('不能添加自己为好友！');
+                    return;
+                }
 
                 await updateDoc(doc(db, 'users', currentUser.uid), {
                     friends: arrayUnion(targetUid)
@@ -1090,13 +1202,14 @@
                 const badgeHTML = (unread > 0 && NotifyManager.mode !== 'silent')
                     ? `<div class="friend-unread-badge">${unread > 99 ? '99+' : unread}</div>`
                     : '';
+                const subLine = f.username ? `${escapeHtml(f.username)} · ${escapeHtml(f.email)}` : escapeHtml(f.email);
 
                 htmlContent += `
                     <div class="friend-item" data-uid="${f.uid}">
                         <div class="avatar">${avatarHTML}</div>
                         <div class="friend-meta">
                             <div class="friend-name">${escapeHtml(f.nickname || '好友')}</div>
-                            <div class="friend-email">${escapeHtml(f.email)}</div>
+                            <div class="friend-email">${subLine}</div>
                         </div>
                         ${badgeHTML}
                     </div>
@@ -1132,6 +1245,7 @@
             unsubFriends = onSnapshot(doc(db, 'users', uid), async (docSnap) => {
                 if (!docSnap.exists()) return;
                 const data = docSnap.data();
+                currentProfileData = data;
                 
                 document.getElementById('settings-nickname').textContent = data.nickname || '用户';
                 document.getElementById('settings-email').textContent = data.email || '';
@@ -1151,7 +1265,7 @@
                 let tempFriendsData = [];
                 for (const fUid of friendUids) {
                     const fSnap = await getDoc(doc(db, 'users', fUid));
-                    let fInfo = { uid: fUid, nickname: '好友', email: '', avatarUrl: '' };
+                    let fInfo = { uid: fUid, nickname: '好友', email: '', username: '', avatarUrl: '' };
                     if (fSnap.exists()) {
                         fInfo = fSnap.data();
                         tempFriendsData.push(fInfo);
