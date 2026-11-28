@@ -340,15 +340,16 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
 
 .recall-notice {color:#bdb5cd;font-size:12px;padding:8px;text-align:center;width:100%;} #messages-box {min-height:0;}
 
-/* Safari stable chat viewport */
+/* iOS browser: independent keyboard layout, opaque chat surface */
 html.ac-safari, html.ac-safari body { overflow:hidden; overscroll-behavior:none; }
 html.ac-safari body { position:fixed; inset:0; width:100%; height:100%; }
 html.ac-safari #app-container { min-height:0; }
-html.ac-safari #chat-view { position:fixed; inset:auto; left:0; top:0; width:100%; height:var(--ac-height,100%); transform:translate3d(0,var(--ac-top,0px),0); transition:none; }
-html.ac-safari #messages-box { min-height:0; overscroll-behavior:contain; }
-html.ac-safari #chat-normal-header { flex-shrink:0; }
-html.ac-safari .tg-input-container { flex-shrink:0; }
+html.ac-safari.ac-chat-open #app-container { background:#191427; }
+html.ac-safari #chat-view { position:fixed; inset:0; width:100%; height:100%; padding-top:var(--ac-pan,0px); padding-bottom:var(--ac-keyboard,0px); transition:none !important; transform:none !important; background-color:#191427; }
+html.ac-safari #messages-box { min-height:0; overscroll-behavior:contain; overflow-anchor:none; }
+html.ac-safari #chat-normal-header, html.ac-safari .tg-input-container { flex-shrink:0; transition:none !important; }
 html.ac-safari #msg-input { font-size:16px; }
+html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
 </style>
 </head>
 <body>
@@ -2228,26 +2229,42 @@ html.ac-safari #msg-input { font-size:16px; }
 <script>
 (() => {
   const ua = navigator.userAgent;
-  if (!/iPhone|iPad|iPod/.test(ua) || !/Version\/.*Safari\//.test(ua) || !window.visualViewport) return;
+  const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (!ios || !(navigator.standalone || /Safari\//.test(ua)) || !window.visualViewport) return;
   const root = document.documentElement, vv = window.visualViewport;
-  const chat = document.getElementById('chat-view');
-  const app = document.getElementById('app-container');
-  let lastHeight = -1, lastTop = -1, active = false;
+  const chat = document.getElementById('chat-view'), app = document.getElementById('app-container');
+  const input = document.getElementById('msg-input');
+  let frame = 0, previous = '';
+  root.classList.add('ac-safari');
   function sync() {
+    frame = 0;
     const open = !chat.classList.contains('hidden') && !app.classList.contains('hidden');
-    if (!open) { if (active) root.classList.remove('ac-safari'); active=false; return; }
-    const h = Math.round(vv.height), y = Math.round(vv.offsetTop);
-    if (h !== lastHeight) { root.style.setProperty('--ac-height', h+'px'); lastHeight=h; }
-    if (y !== lastTop) { root.style.setProperty('--ac-top', y+'px'); lastTop=y; }
-    if (!active) { root.classList.add('ac-safari'); active=true; }
+    root.classList.toggle('ac-chat-open', open);
+    const layoutHeight = chat.clientHeight || root.clientHeight;
+    const pan = open ? Math.max(0, vv.offsetTop) : 0;
+    const bottom = open ? Math.max(0, layoutHeight - vv.height - pan) : 0;
+    const key = `${Math.round(pan)}:${Math.round(bottom)}`;
+    if (key !== previous) {
+      root.style.setProperty('--ac-pan', Math.round(pan)+'px');
+      root.style.setProperty('--ac-keyboard', Math.round(bottom)+'px');
+      previous = key;
+    }
+    root.classList.toggle('ac-keyboard', open && layoutHeight - vv.height > 100);
   }
-  // Update directly on viewport events, without delayed frames or forced message scrolling.
-  vv.addEventListener('resize', sync, {passive:true});
-  vv.addEventListener('scroll', sync, {passive:true});
-  window.addEventListener('resize', sync, {passive:true});
-  window.addEventListener('scroll', sync, {passive:true});
-  document.addEventListener('focusin', sync);
-  document.addEventListener('focusout', sync);
+  function schedule() { if (!frame) frame = requestAnimationFrame(sync); }
+  // Focus without asking Safari to scroll the entire document into view.
+  input.addEventListener('pointerdown', e => {
+    if (e.pointerType !== 'touch' || document.activeElement === input) return;
+    e.preventDefault();
+    input.focus({preventScroll:true});
+    schedule();
+  });
+  vv.addEventListener('resize', schedule, {passive:true});
+  vv.addEventListener('scroll', schedule, {passive:true});
+  window.addEventListener('resize', schedule, {passive:true});
+  window.addEventListener('scroll', schedule, {passive:true});
+  document.addEventListener('focusin', schedule);
+  document.addEventListener('focusout', schedule);
   const observer = new MutationObserver(sync);
   observer.observe(chat,{attributes:true,attributeFilter:['class']});
   observer.observe(app,{attributes:true,attributeFilter:['class']});
