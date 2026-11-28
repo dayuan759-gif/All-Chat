@@ -337,6 +337,8 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
 #msg-action-panel button.danger {color:#ff777f;}
 #msg-action-panel h3 {padding:16px;font-size:15px;color:#c4b5fd;}
 #msg-action-panel textarea {width:90%;margin:5%;padding:10px;background:#191421;color:white;border:1px solid #a78bfa;border-radius:10px;font-size:16px;}
+
+.recall-notice {color:#bdb5cd;font-size:12px;padding:8px;text-align:center;width:100%;} #messages-box {min-height:0;}
 </style>
 </head>
 <body>
@@ -1620,9 +1622,9 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
             const ref=doc(db,'rooms',room,'messages',id);
             const textMessage=m.type==='text'||!m.type;
             actionPanel.replaceChildren();actionOverlay.classList.remove('hidden');actionTitle('消息操作');
-            if(mine) actionButton('↶  撤回',async()=>{actionPanel.replaceChildren();actionTitle('撤回后双方均无法查看此消息');actionButton('确认撤回',async()=>{await deleteDoc(ref);closeMsgActions();},true);actionButton('取消',closeMsgActions);},true);
-            if(typeof m.text==='string') actionButton('▢  复制',async()=>{try{await navigator.clipboard.writeText(m.text);closeMsgActions();}catch(e){actionPanel.replaceChildren();actionTitle('请手动复制');const t=document.createElement('textarea');t.value=m.text;actionPanel.append(t);t.focus();t.select();actionButton('关闭',closeMsgActions);}});
-            if(mine&&textMessage) actionButton('✎  编辑',()=>{actionPanel.replaceChildren();actionTitle('编辑消息');const t=document.createElement('textarea');t.value=m.text||'';actionPanel.append(t);actionButton('保存',async()=>{if(!t.value.trim())return;await updateDoc(ref,{text:t.value.trim()});closeMsgActions();});actionButton('取消',closeMsgActions);});
+            if(mine&&m.type!=="recalled") actionButton('↶  撤回',async()=>{actionPanel.replaceChildren();actionTitle('撤回后双方均无法查看此消息');actionButton('确认撤回',async()=>{await updateDoc(ref,{type:"recalled",text:"消息已撤回",imageUrl:null,audioUrl:null,recalledAt:serverTimestamp()});closeMsgActions();},true);actionButton('取消',closeMsgActions);},true);
+            if(m.type!=='recalled'&&typeof m.text==='string') actionButton('▢  复制',async()=>{try{await navigator.clipboard.writeText(m.text);closeMsgActions();}catch(e){actionPanel.replaceChildren();actionTitle('请手动复制');const t=document.createElement('textarea');t.value=m.text;actionPanel.append(t);t.focus();t.select();actionButton('关闭',closeMsgActions);}});
+            if(mine&&textMessage) actionButton('✎  编辑',()=>{actionPanel.replaceChildren();actionTitle('编辑消息');const t=document.createElement('textarea');t.value=m.text||'';actionPanel.append(t);actionButton('保存',async()=>{if(!t.value.trim())return;await updateDoc(ref,{text:t.value.trim(),editedAt:serverTimestamp()});closeMsgActions();});actionButton('取消',closeMsgActions);});
             if(textMessage||m.type==='image'||m.type==='voice') actionButton('➜  转发',()=>{actionPanel.replaceChildren();actionTitle('选择转发好友');for(const f of cachedFriendsData){if(!f.uid||f.uid===uid)continue;actionButton(f.nickname||f.phone||f.email||'好友',async()=>{const target=[uid,f.uid].sort().join('_');const data={type:m.type||'text',sender:uid,createdAt:serverTimestamp()};if(data.type==='image')data.imageUrl=m.imageUrl;else if(data.type==='voice')data.audioUrl=m.audioUrl;else data.text=m.text||'';await addDoc(collection(db,'rooms',target,'messages'),data);closeMsgActions();});}actionButton('取消',closeMsgActions);});
             actionButton('取消',closeMsgActions);
         }
@@ -1657,7 +1659,9 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
                 const row = document.createElement('div');
                 row.className = 'msg-row ' + (isMe ? 'me' : '');
 
-                if (m.type === 'voice') {
+                if (m.type === 'recalled') {
+                    row.innerHTML = '<div class="recall-notice">消息已撤回</div>';
+                } else if (m.type === 'voice') {
                     row.innerHTML = `
                         <div class="voice-bubble" ${isSelectMode ? '' : `onclick="playVoice('${m.audioUrl}')"`}>
                             <div class="voice-play-icon">▶</div>
@@ -1691,7 +1695,7 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
                     row.innerHTML = `
                         <div class="msg-bubble">
                             ${escapeHtml(m.text)}
-                            <span class="msg-time">${timeStr} ${isMe ? '✓' : ''}</span>
+                            <span class="msg-time">${m.editedAt ? '已编辑 · ' : ''}${timeStr} ${isMe ? '✓' : ''}</span>
                         </div>
                     `;
                 }
