@@ -389,6 +389,24 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
 .v5panel>.v5bar button{width:44px;height:44px;padding:0;font-size:27px}.v5panel h2{margin:0;font-size:18px}
 .v5panel .v5row{background:#342034}.v5panel .v5row:first-of-type{border-radius:20px 20px 0 0}.v5panel .v5row:last-of-type{border-radius:0 0 20px 20px}
 .v5panel input[type=checkbox].v5end{appearance:none;-webkit-appearance:none;width:51px;height:29px;border-radius:30px;background:#706170;position:relative;flex-shrink:0;cursor:pointer}.v5panel input[type=checkbox].v5end:checked{background:#d237c3}.v5panel input[type=checkbox].v5end:before{content:'';position:absolute;width:23px;height:23px;top:3px;left:3px;border-radius:50%;background:white}.v5panel input[type=checkbox].v5end:checked:before{left:25px}
+</style><style>
+#app-container #tab-calls, #tab-calls {background:#241625!important;color:#fff!important}
+#tab-calls .header{display:grid!important;grid-template-columns:56px 1fr 48px;gap:12px!important;padding:12px 15px!important;background:transparent!important;border:0!important;min-height:70px!important}
+#tab-calls .header button{color:#fff!important;font-size:15px!important;font-weight:600;box-shadow:none!important}
+#tab-calls #v5-call-edit,#tab-calls #v5-new-call{height:42px;padding:0!important;background:#493849!important;border:1px solid #ffffff25!important;border-radius:24px!important}
+#tab-calls #v5-new-call svg,#v5-new-call2 svg{width:24px;height:24px;vertical-align:middle}
+#tab-calls #v51-call-segment{width:126px;justify-self:center;margin:0!important;display:flex!important;background:#493849!important;border:1px solid #ffffff25;border-radius:30px;padding:3px!important}
+#tab-calls #v51-call-segment button{flex:1;padding:7px 9px!important;border:0!important;background:transparent!important;border-radius:24px!important}
+#tab-calls #v51-call-segment button.v5active{background:#301b30!important}
+#tab-calls .tab-page{padding:0 15px 105px!important;background:transparent!important}
+#tab-calls .v5bar{display:block!important;margin:0!important;padding:0!important}
+#tab-calls #v5-new-call2{display:flex;align-items:center;gap:16px;width:100%;border:0!important;border-radius:0!important;background:transparent!important;color:#d532cf!important;font-size:18px!important;padding:14px 3px!important;text-align:left;border-bottom:1px solid #ffffff12!important}
+.ac-recent{color:#8e788d;font-size:13px;padding:8px 0 4px}
+#tab-calls .call-log-item{background:transparent!important;border:0!important;border-radius:0!important;margin:0!important;padding:0!important;min-height:56px!important;display:flex;gap:8px;align-items:center}
+#tab-calls .call-log-left{flex:1;min-width:0;gap:10px!important;display:flex;align-items:center}
+.ac-direction{font-size:15px;color:#927b90;width:15px;flex-shrink:0}.ac-call-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#b99af9,#7363db);display:grid;place-items:center;overflow:hidden;flex-shrink:0;font-weight:700}.ac-call-avatar img{width:100%;height:100%;object-fit:cover}
+#tab-calls .call-log-meta{flex:1;min-width:0;border-bottom:1px solid #ffffff12;padding:9px 0}#tab-calls .call-log-meta h4{font-size:17px!important;color:#fff!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0!important}#tab-calls .call-log-meta p{font-size:14px!important;color:#927b90!important;margin:2px 0 0!important}.ac-call-date{color:#927b90;font-size:14px;white-space:nowrap}.ac-info{border:0;background:none;color:#d532cf;padding:7px 0;font-size:22px;line-height:1;cursor:pointer}
+body:has(#tab-calls:not(.hidden)) #floating-nav{background:#493849e8!important;border:1px solid #ffffff35!important;box-shadow:none!important}body:has(#tab-calls:not(.hidden)) #floating-nav .nav-item{flex:1!important;background:transparent!important;color:white!important;box-shadow:none!important;border-radius:40px!important}body:has(#tab-calls:not(.hidden)) #floating-nav .nav-item.active{background:#301b30!important;color:#d532cf!important}
 </style></head>
 <body>
 
@@ -466,10 +484,10 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
         <!-- Tab 2: 通话记录页面 -->
         <div id="tab-calls" class="view-panel hidden">
             <div class="header">
-                <button class="v5btn" id="v5-call-edit">编辑</button><div id="v51-call-segment"><button class="v5btn v5active" id="v5-all-calls">全部</button><button class="v5btn" id="v5-missed">未接</button></div><button class="v5btn" id="v5-new-call">☎＋</button>
+                <button class="v5btn" id="v5-call-edit">编辑</button><div id="v51-call-segment"><button class="v5btn v5active" id="v5-all-calls">全部</button><button class="v5btn" id="v5-missed">未接</button></div><button class="v5btn" id="v5-new-call" aria-label="开始新通话"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H4a1 1 0 0 0-1 1c0 9 8 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2z"/><path d="M18 2v8m-4-4h8"/></svg></button>
             </div>
             <div class="tab-page">
-                <div class="v5bar"><button class="v5btn" id="v5-new-call2">开始新通话</button></div><div id="call-logs-container">
+                <div class="v5bar"><button class="v5btn" id="v5-new-call2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H4a1 1 0 0 0-1 1c0 9 8 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2z"/><path d="M18 2v8m-4-4h8"/></svg><span>开始新通话</span></button></div><div class="ac-recent">最近通话</div><div id="call-logs-container">
                     <div class="empty-tip">暂无通话记录</div>
                 </div>
             </div>
@@ -1562,19 +1580,21 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
                 let html = '';
                 snapshot.forEach(docSnap => {
                     const log = docSnap.data();
-                    const icon = log.isVideo ? '📹' : '📞';
+                    const icon = log.isVideo ? '▣' : '↗';
+                    const incoming = /接听|拒绝/.test(log.statusText||'');
+                    const dateLabel = log.createdAt ? log.createdAt.toDate().toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',...(log.createdAt.toDate().getFullYear()!==new Date().getFullYear()?{year:'2-digit'}:{})}) : '刚刚';
                     const timeStr = log.createdAt ? log.createdAt.toDate().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '刚刚';
                     
                     html += `
                         <div class="call-log-item" data-log-id="${docSnap.id}" data-status="${escapeHtml(log.statusText||'')}" data-friend-uid="${log.friendUid}" data-is-video="${log.isVideo}">
                             <div class="call-log-left">
-                                <span style="font-size:24px;">${icon}</span>
+                                <span class="ac-direction">${incoming?'↙':icon}</span><span class="ac-call-avatar">${escapeHtml((log.friendName||'友').slice(0,1))}</span>
                                 <div class="call-log-meta">
                                     <h4>${escapeHtml(log.friendName)}</h4>
-                                    <p>${escapeHtml(log.statusText)} · ${timeStr}</p>
+                                    <p>${escapeHtml(log.statusText||'')}</p>
                                 </div>
                             </div>
-                            <span class="call-action-badge">回拨</span>
+                            <span class="ac-call-date">${dateLabel}</span><button class="ac-info" aria-label="通话详情">ⓘ</button>
                         </div>
                     `;
                 });
@@ -1582,7 +1602,11 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
                 queueMicrotask(v5Calls);
 
                 document.querySelectorAll('.call-log-item').forEach(item => {
+                    const uid=item.dataset.friendUid;
+                    getDoc(doc(db,'users',uid)).then(snap=>{if(snap.exists()&&snap.data().avatarUrl){const img=document.createElement('img');img.src=snap.data().avatarUrl;img.alt='';item.querySelector('.ac-call-avatar').replaceChildren(img)}}).catch(()=>{});
+                    item.querySelector('.ac-info').onclick=e=>{e.stopPropagation();const p=v5Panel('通话详情');v5Row(p,item.querySelector('h4').textContent,()=>{},'●',item.querySelector('p').textContent).disabled=true;for(const [label,video] of [['语音通话',false],['视频通话',true]])v5Row(p,label,async()=>{try{const snap=await getDoc(doc(db,'users',uid));if(!snap.exists())return alert('好友不存在');p.classList.add('hidden');openChat({...snap.data(),uid});initiateCall(video)}catch(err){alert(err.message)}},'☎');};
                     item.onclick = async () => {
+                        if(v5CallEdit)return;
                         const fUid = item.getAttribute('data-friend-uid');
                         const isVideo = item.getAttribute('data-is-video') === 'true';
                         
@@ -2290,7 +2314,7 @@ v5$('v5-edit').onclick=()=>{v5Editing=!v5Editing;v5Selected.clear();v5$('v5-edit
 function v5Batch(key){if(!v5Selected.size)return alert('请先选择聊天');const p=v5Get(),set=new Set(p[key]||[]);for(const id of v5Selected){if(key==='archived'&&v5Folder==='归档')set.delete(id);else set.add(id)}p[key]=[...set];v5Save(p);v5Selected.clear();v5Refresh()}
 v5$('v5-archive').onclick=()=>v5Batch('archived');v5$('v5-delete').onclick=()=>{if(confirm('仅从本设备聊天列表隐藏，不删除好友或聊天记录？'))v5Batch('hidden')};
 v5$('v5-folder-add').onclick=()=>{const p=v5Panel('新建聊天文件夹'),n=document.createElement('input');n.className='v5search';n.placeholder='文件夹名称';p.append(n);const ids=new Set();for(const f of cachedFriendsData){const l=document.createElement('label');l.className='v5row';const c=document.createElement('input');c.type='checkbox';c.onchange=()=>c.checked?ids.add(f.uid):ids.delete(f.uid);l.append(c,document.createTextNode(f.nickname||'好友'));p.append(l)}p.append(v5Button('保存',()=>{const name=n.value.trim();if(!name||['全部','归档'].includes(name))return alert('请输入其他名称');const d=v5Get();d.folders={...(d.folders||{}),[name]:[...ids]};v5Save(d);v5Folder=name;p.classList.add('hidden');v5Refresh()}))};
-function v5NewCall(){const p=v5Panel('开始新通话');for(const f of cachedFriendsData)v5Row(p,f.nickname||'好友',()=>{v5Panel('选择通话方式');v5Row(p,'语音通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(false)},'☎');v5Row(p,'视频通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(true)},'▣');p.append(v5Button('取消',()=>p.classList.add('hidden')))},'☎')}
+function v5NewCall(){const p=v5Panel('开始新通话');if(!cachedFriendsData.length){const n=document.createElement('p');n.textContent='暂无联系人，请先添加好友';p.append(n)}for(const f of cachedFriendsData)v5Row(p,f.nickname||'好友',()=>{v5Panel('选择通话方式');v5Row(p,'语音通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(false)},'☎');v5Row(p,'视频通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(true)},'▣');p.append(v5Button('取消',()=>p.classList.add('hidden')))},'☎')}
 v5$('v5-new-call').onclick=v5$('v5-new-call2').onclick=v5NewCall;
 function v5Calls(){for(const el of v5$('call-logs-container').querySelectorAll('.call-log-item')){el.style.display=v5Missed&&!/未接|拒绝|取消/.test(el.dataset.status)?'none':'';el.querySelector('.v5-log-delete')?.remove();if(v5CallEdit){const b=v5Button('删除',async e=>{},'v5btn v5-log-delete');b.onclick=async e=>{e.stopPropagation();if(!confirm('删除这条通话记录？'))return;try{await deleteDoc(doc(db,'users',currentUser.uid,'callLogs',el.dataset.logId))}catch(e){alert(e.message)}};el.append(b)}}v5$('v5-all-calls').classList.toggle('v5active',!v5Missed);v5$('v5-missed').classList.toggle('v5active',v5Missed)}
 v5$('v5-all-calls').onclick=()=>{v5Missed=false;v5Calls()};v5$('v5-missed').onclick=()=>{v5Missed=true;v5Calls()};v5$('v5-call-edit').onclick=()=>{v5CallEdit=!v5CallEdit;v5$('v5-call-edit').textContent=v5CallEdit?'完成':'编辑';v5Calls()};
