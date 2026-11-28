@@ -317,7 +317,7 @@
     <!-- 1. 登录 / 注册界面（支持 泰国 +66 / 缅甸 +95 手机号 & 电子邮箱） -->
     <div id="auth-view" class="hidden">
         <div class="logo-title">All Chat</div>
-        <div class="sub-title" id="auth-subtitle">使用泰国/缅甸手机号验证码登录或注册</div>
+        <div class="sub-title" id="auth-subtitle">使用手机号码或邮箱及密码登录</div>
         
         <div class="form-box">
             <div class="auth-method-tabs">
@@ -329,8 +329,8 @@
 
             <!-- 手机号区域（泰国 +66 / 缅甸 +95） -->
             <div id="phone-auth-section">
-                <div class="input-group">
-                    <input type="text" id="phone-nickname-input" placeholder="昵称（新号注册时填写，老号可不填）">
+                <div class="input-group hidden" id="phone-nickname-group">
+                    <input type="text" id="phone-nickname-input" placeholder="昵称（注册时填写）">
                 </div>
                 <div class="phone-row">
                     <select id="country-code-select" class="country-select">
@@ -339,12 +339,11 @@
                     </select>
                     <input type="tel" id="phone-number-input" placeholder="输入手机号（如 08... 或 09...）" inputmode="tel">
                 </div>
-                <div class="otp-row">
-                    <input type="text" id="sms-code-input" placeholder="6位短信验证码" maxlength="6" inputmode="numeric">
-                    <button type="button" class="send-code-btn" id="send-sms-btn">获取验证码</button>
-                </div>
-                <button type="button" class="primary-btn" id="phone-submit-btn">验证并登录 / 注册</button>
-                <div id="recaptcha-container"></div>
+                <div class="input-group"><input type="password" id="phone-password" placeholder="密码（至少8位）" autocomplete="current-password"></div>
+                <div class="input-group hidden" id="phone-confirm-group"><input type="password" id="phone-confirm" placeholder="确认密码" autocomplete="new-password"></div>
+                <button type="button" class="primary-btn" id="phone-submit-btn">登录</button>
+                <div class="auth-links"><span id="phone-switch">没有账号? 立即注册</span></div>
+                <p style="font-size:12px;color:#888;margin-top:12px">无需短信；号码未经验证。请牢记密码，手机账号暂不支持找回密码。</p>
             </div>
 
             <!-- 电子邮箱区域 -->
@@ -371,7 +370,7 @@
     </div>
 
     <!-- 2. 主应用界面（默认直接显示聊天页面） -->
-    <div id="app-container" class="app-container">
+    <div id="app-container" class="app-container hidden">
         
         <!-- Tab 1: 联系人页面 -->
         <div id="tab-contacts" class="view-panel hidden">
@@ -722,8 +721,7 @@
             signOut,
             onAuthStateChanged,
             sendPasswordResetEmail,
-            RecaptchaVerifier,
-            signInWithPhoneNumber
+            sendEmailVerification
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, arrayUnion, onSnapshot, collection, query, where, getDocs, addDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -813,8 +811,7 @@
         const phoneNicknameInput = document.getElementById('phone-nickname-input');
         const countryCodeSelect = document.getElementById('country-code-select');
         const phoneNumberInput = document.getElementById('phone-number-input');
-        const smsCodeInput = document.getElementById('sms-code-input');
-        const sendSmsBtn = document.getElementById('send-sms-btn');
+
         const phoneSubmitBtn = document.getElementById('phone-submit-btn');
 
         const nicknameGroup = document.getElementById('nickname-group');
@@ -833,7 +830,7 @@
             tabMethodEmail.classList.remove('active');
             phoneAuthSection.classList.remove('hidden');
             emailAuthSection.classList.add('hidden');
-            authSubtitle.textContent = '使用泰国 (+66) / 缅甸 (+95) 手机号验证码登录或注册';
+            authSubtitle.textContent = '使用泰国 (+66) / 缅甸 (+95) 手机号及密码登录或注册';
             setStatus('');
         };
 
@@ -861,111 +858,44 @@
             return countryCode + digits;
         }
 
-        function ensureRecaptcha() {
-            if (!recaptchaVerifierInstance) {
-                recaptchaVerifierInstance = new RecaptchaVerifier(auth, 'recaptcha-container', {
-                    size: 'invisible',
-                    callback: () => {}
-                });
-            }
-            return recaptchaVerifierInstance;
-        }
-
-        function startSmsCountdown(seconds = 60) {
-            let left = seconds;
-            sendSmsBtn.disabled = true;
-            sendSmsBtn.textContent = `${left}s 后重发`;
-            if (smsCountdownTimer) clearInterval(smsCountdownTimer);
-            smsCountdownTimer = setInterval(() => {
-                left -= 1;
-                if (left <= 0) {
-                    clearInterval(smsCountdownTimer);
-                    smsCountdownTimer = null;
-                    sendSmsBtn.disabled = false;
-                    sendSmsBtn.textContent = '重新获取';
-                } else {
-                    sendSmsBtn.textContent = `${left}s 后重发`;
-                }
-            }, 1000);
-        }
-
-        // 发送泰国 / 缅甸短信验证码
-        sendSmsBtn.onclick = async () => {
-            AudioHelper.init();
-            const countryCode = countryCodeSelect.value;
-            const fullPhone = formatPhoneWithCountry(countryCode, phoneNumberInput.value);
-
-            if (!fullPhone || fullPhone.length < 10) {
-                setStatus('请输入有效的泰国或缅甸手机号码');
-                return;
-            }
-
+        // Phone identifiers use a reserved, non-deliverable email namespace.
+        const phoneDomain = '@phone.allchat.invalid';
+        const phoneFromUser = user => user.email && /^\d{8,15}@phone\.allchat\.invalid$/.test(user.email) ? '+' + user.email.split('@')[0] : '';
+        let phoneRegister = false;
+        const phonePwd = document.getElementById('phone-password');
+        const phoneSwitch = document.getElementById('phone-switch');
+        phoneSwitch.onclick = () => {
+            phoneRegister = !phoneRegister;
+            document.getElementById('phone-nickname-group').classList.toggle('hidden', !phoneRegister);
+            document.getElementById('phone-confirm-group').classList.toggle('hidden', !phoneRegister);
+            phonePwd.autocomplete = phoneRegister ? 'new-password' : 'current-password';
+            phoneSubmitBtn.textContent = phoneRegister ? '立即注册' : '登录';
+            phoneSwitch.textContent = phoneRegister ? '已有账号? 返回登录' : '没有账号? 立即注册';
             setStatus('');
-            sendSmsBtn.disabled = true;
-            sendSmsBtn.textContent = '发送中...';
-
-            try {
-                const verifier = ensureRecaptcha();
-                confirmationResultObj = await signInWithPhoneNumber(auth, fullPhone, verifier);
-                setStatus(`验证码已发送至 ${fullPhone}，请查收短信`, true);
-                startSmsCountdown(60);
-            } catch (err) {
-                if (recaptchaVerifierInstance) {
-                    try { recaptchaVerifierInstance.clear(); } catch (e) {}
-                    recaptchaVerifierInstance = null;
-                }
-                sendSmsBtn.disabled = false;
-                sendSmsBtn.textContent = '获取验证码';
-                setStatus('短信发送失败: ' + err.message);
-            }
         };
-
-        // 校验短信验证码并登录/注册
         phoneSubmitBtn.onclick = async () => {
-            AudioHelper.init();
-            const code = smsCodeInput.value.trim();
-            if (!confirmationResultObj) {
-                setStatus('请先点击“获取验证码”');
-                return;
-            }
-            if (code.length < 6) {
-                setStatus('请输入6位短信验证码');
-                return;
-            }
-
+            const raw = phoneNumberInput.value.trim();
+            const country = countryCodeSelect.value;
+            const local = raw.replace(/[\s()-]/g, '');
+            const national = local.startsWith(country) ? local.slice(country.length) : local.replace(/^0/, '');
+            const fullPhone = country + national;
+            const pwd = phonePwd.value;
+            const nick = phoneNicknameInput.value.trim();
+            if (!(country === '+66' ? /^[689]\d{8}$/.test(national) : /^9\d{7,9}$/.test(national))) return setStatus('请输入有效的手机号码');
+            if (pwd.length < 8) return setStatus('密码至少8位');
+            if (phoneRegister && (!nick || pwd !== document.getElementById('phone-confirm').value)) return setStatus('请输入昵称并确认两次密码一致');
             phoneSubmitBtn.disabled = true;
-            phoneSubmitBtn.textContent = '验证中...';
             setStatus('');
-
             try {
-                const cred = await confirmationResultObj.confirm(code);
-                const user = cred.user;
-                const userRef = doc(db, 'users', user.uid);
-                const snap = await getDoc(userRef);
-
-                const inputNick = phoneNicknameInput.value.trim();
-                const phoneStr = user.phoneNumber || formatPhoneWithCountry(countryCodeSelect.value, phoneNumberInput.value);
-                const tailDigits = phoneStr.replace(/[^\d]/g, '').slice(-6);
-
-                if (!snap.exists()) {
-                    await setDoc(userRef, {
-                        uid: user.uid,
-                        phone: phoneStr,
-                        email: '',
-                        nickname: inputNick || ('用户' + tailDigits),
-                        username: '@u' + tailDigits,
-                        avatarUrl: '',
-                        friends: []
-                    });
-                } else if (inputNick) {
-                    await updateDoc(userRef, { nickname: inputNick });
-                }
-            } catch (err) {
-                setStatus('验证码错误或已过期: ' + err.message);
-                phoneSubmitBtn.disabled = false;
-                phoneSubmitBtn.textContent = '验证并登录 / 注册';
-            }
+                const identifier = fullPhone.slice(1) + phoneDomain;
+                if (phoneRegister) {
+                    pendingRegistration = { nickname: nick, phone: fullPhone, email: '' };
+                    await createUserWithEmailAndPassword(auth, identifier, pwd);
+                } else await signInWithEmailAndPassword(auth, identifier, pwd);
+            } catch (e) { pendingRegistration = null; setStatus('登录/注册失败：' + e.message); }
+            finally { phoneSubmitBtn.disabled = false; }
         };
+        let pendingRegistration = null;
 
         const notifyModeSelect = document.getElementById('notify-mode-select');
         const notifyStatusDesc = document.getElementById('notify-status-desc');
@@ -1063,7 +993,7 @@
 
         document.getElementById('forgot-btn').onclick = async () => {
             const email = emailInput.value.trim();
-            if (!email) {
+            if (!email || email.toLowerCase().endsWith(phoneDomain)) {
                 setStatus('请先在上方输入你的电子邮箱');
                 return;
             }
@@ -1078,10 +1008,10 @@
         submitBtn.onclick = async () => {
             AudioHelper.init();
             const email = emailInput.value.trim();
-            const pwd = pwdInput.value.trim();
+            const pwd = pwdInput.value;
             const nickname = nicknameInput.value.trim();
 
-            if (!email || pwd.length < 6) {
+            if (!email || email.toLowerCase().endsWith(phoneDomain) || pwd.length < 6) {
                 setStatus('请输入有效邮箱和至少6位密码');
                 return;
             }
@@ -1098,20 +1028,15 @@
                         submitBtn.textContent = '立即注册';
                         return;
                     }
+                    pendingRegistration = { nickname, email, phone: '' };
                     const cred = await createUserWithEmailAndPassword(auth, email, pwd);
-                    await setDoc(doc(db, 'users', cred.user.uid), {
-                        uid: cred.user.uid,
-                        email: email,
-                        phone: '',
-                        nickname: nickname,
-                        username: '@' + email.split('@')[0],
-                        avatarUrl: '',
-                        friends: []
-                    });
+                    try { await sendEmailVerification(cred.user); alert('验证邮件已发送，请查收。'); }
+                    catch (e) { alert('账号已创建，但验证邮件发送失败：' + e.message); }
                 } else {
                     await signInWithEmailAndPassword(auth, email, pwd);
                 }
             } catch (e) {
+                pendingRegistration = null;
                 setStatus('登录/注册失败: ' + e.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = isRegister ? '立即注册' : '登 录';
@@ -1124,7 +1049,7 @@
             submitBtn.disabled = false;
             submitBtn.textContent = isRegister ? '立即注册' : '登 录';
             phoneSubmitBtn.disabled = false;
-            phoneSubmitBtn.textContent = '验证并登录 / 注册';
+            phoneSubmitBtn.textContent = phoneRegister ? '立即注册' : '登录';
 
             if (user) {
                 currentUser = user;
@@ -1138,17 +1063,15 @@
                 const userRef = doc(db, 'users', user.uid);
                 const snap = await getDoc(userRef);
                 if (!snap.exists()) {
-                    const defaultNick = user.email
-                        ? user.email.split('@')[0]
-                        : ('用户' + (user.phoneNumber || user.uid).slice(-6));
-                    const defaultUname = user.email
-                        ? ('@' + user.email.split('@')[0])
-                        : ('@u' + (user.phoneNumber || user.uid).replace(/[^\d]/g, '').slice(-6));
-
+                    const inferredPhone = phoneFromUser(user) || user.phoneNumber || '';
+                    const registration = pendingRegistration;
+                    const defaultNick = registration?.nickname || (inferredPhone ? '用户' + inferredPhone.slice(-6) : (user.email ? user.email.split('@')[0] : '用户' + user.uid.slice(-6)));
+                    const defaultUname = inferredPhone ? '@u' + inferredPhone.slice(-6) : '@' + (user.email || user.uid).split('@')[0];
                     await setDoc(userRef, {
                         uid: user.uid,
-                        email: user.email || '',
-                        phone: user.phoneNumber || '',
+                        email: inferredPhone ? '' : (user.email || ''),
+                        phone: inferredPhone,
+                        phoneVerified: Boolean(user.phoneNumber),
                         nickname: defaultNick,
                         username: defaultUname,
                         avatarUrl: '',
@@ -1156,6 +1079,7 @@
                     });
                 }
 
+                pendingRegistration = null;
                 listenFriends(user.uid);
                 listenIncomingCalls(user.uid);
                 listenCallLogs(user.uid);
