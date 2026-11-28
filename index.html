@@ -339,6 +339,15 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
 #msg-action-panel textarea {width:90%;margin:5%;padding:10px;background:#191421;color:white;border:1px solid #a78bfa;border-radius:10px;font-size:16px;}
 
 .recall-notice {color:#bdb5cd;font-size:12px;padding:8px;text-align:center;width:100%;} #messages-box {min-height:0;}
+
+/* Safari browser keyboard layout */
+html.allchat-safari-chat { overflow:hidden; overscroll-behavior:none; }
+html.allchat-safari-chat body { position:fixed; top:var(--ac-top,0px); left:0; width:100%; height:var(--ac-height,100dvh); overflow:hidden; }
+html.allchat-safari-chat #app-container { min-height:0; }
+html.allchat-safari-chat #chat-view { min-height:0; }
+html.allchat-safari-chat #messages-box { min-height:0; overscroll-behavior:contain; }
+html.allchat-safari-chat .tg-input-container { flex-shrink:0; }
+html.allchat-safari-chat.ac-keyboard .tg-input-container { padding-bottom:4px; }
 </style>
 </head>
 <body>
@@ -2214,5 +2223,42 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
             return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
         }
     </script>
+
+<script>
+(() => {
+  const ua = navigator.userAgent;
+  // Only Safari browser, not the existing Flutter WKWebView.
+  if (!/iPhone|iPad|iPod/.test(ua) || !/Version\/.*Safari\//.test(ua) || !window.visualViewport) return;
+  const root = document.documentElement, vv = window.visualViewport;
+  const chat = document.getElementById('chat-view');
+  const messages = document.getElementById('messages-box');
+  let frame = 0, fullHeight = vv.height, wasOpen = false;
+  function update() {
+    frame = 0;
+    const open = !chat.classList.contains('hidden') && !document.getElementById('app-container').classList.contains('hidden');
+    const editing = document.activeElement === document.getElementById('msg-input');
+    if (!open) { root.classList.remove('allchat-safari-chat','ac-keyboard'); wasOpen=false; return; }
+    if (!editing && !wasOpen) fullHeight = vv.height;
+    if (!editing && vv.height >= fullHeight - 60) fullHeight = vv.height;
+    const keyboard = fullHeight - vv.height > 100;
+    const nearBottom = messages.scrollHeight - messages.scrollTop - messages.clientHeight < 90;
+    root.style.setProperty('--ac-height', `${vv.height}px`);
+    root.style.setProperty('--ac-top', `${vv.offsetTop}px`);
+    root.classList.add('allchat-safari-chat');
+    root.classList.toggle('ac-keyboard', keyboard);
+    if (nearBottom) messages.scrollTop = messages.scrollHeight;
+    wasOpen = true;
+  }
+  function schedule() { if (!frame) frame = requestAnimationFrame(update); }
+  vv.addEventListener('resize', schedule); vv.addEventListener('scroll', schedule);
+  window.addEventListener('resize', schedule); window.addEventListener('scroll', schedule);
+  window.addEventListener('orientationchange', () => { fullHeight=vv.height; schedule(); });
+  document.addEventListener('focusin', schedule); document.addEventListener('focusout', schedule);
+  const observer = new MutationObserver(schedule);
+  observer.observe(chat, {attributes:true,attributeFilter:['class']});
+  observer.observe(document.getElementById('app-container'), {attributes:true,attributeFilter:['class']});
+  schedule();
+})();
+</script>
 </body>
 </html>
