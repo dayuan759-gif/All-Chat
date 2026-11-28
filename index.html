@@ -356,6 +356,39 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
 </style>
 <style>
 #tab-contacts .header,#tab-calls .header,#tab-chats .header,#tab-settings .header{background:transparent;border:0;gap:10px;min-height:64px}.v5btn{border:1px solid #ffffff30;background:#ffffff15;color:inherit;border-radius:25px;padding:10px 16px;font:inherit;cursor:pointer}.v5bar{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px}.v5search{width:100%;border:0;border-radius:16px;background:#ffffff12;color:inherit;padding:12px;font-size:16px}.v5group{background:#ffffff0b;border-radius:24px;margin:16px 0;overflow:hidden}.v5row{display:flex;align-items:center;gap:12px;width:100%;border:0;border-bottom:1px solid #ffffff0b;background:transparent;color:inherit;text-align:left;padding:16px;font-size:16px}.v5row:last-child{border:0}.v5icon{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#8753dc;color:white}.v5end{margin-left:auto;color:#aaa}.v5active{background:#843cbd!important;color:white!important}.v5check{accent-color:#a33ce1;width:23px;height:23px;flex:none}.v5selected{background:#ffffff10}.v5sub{color:#aaa;font-size:12px;padding:8px 15px}.v5panel{position:fixed;inset:0;z-index:9000;background:#24182b;color:white;padding: max(16px,env(safe-area-inset-top)) 16px max(20px,env(safe-area-inset-bottom));overflow:auto}.v5panel.hidden{display:none}.v5panel h2{font-size:19px;text-align:center;flex:1}.v5panel input[type=checkbox]{accent-color:#b23ee0;width:22px;height:22px}.v5tools{position:sticky;bottom:0;background:#30233e;padding:10px;border-radius:24px;display:flex;justify-content:space-around;gap:5px}.v5tools.hidden{display:none}
+</style>
+<style>
+#tab-contacts,#tab-calls,#tab-chats,#tab-settings,#v5-panel{background:#241625;color:#fff}
+#app-container:has(#chat-view.hidden){background:#241625}
+#tab-contacts .header,#tab-calls .header,#tab-chats .header,#tab-settings .header{padding:12px 16px;min-height:68px;display:flex;align-items:center;justify-content:space-between}
+.v5btn,.header-plus{background:#493849!important;border:1px solid #ffffff24!important;color:#fff!important;box-shadow:none!important;border-radius:30px!important;min-height:42px;touch-action:manipulation}
+.v5active{background:#342034!important;color:#e23bd1!important}
+#v5-folders,#v51-call-segment{background:#493849;border-radius:30px;padding:3px;margin:4px 16px;display:flex;gap:3px;justify-content:initial}
+#v5-folders .v5btn,#v51-call-segment .v5btn{flex:1;white-space:nowrap;border:0!important;background:transparent!important}
+#v5-folders .v5active,#v51-call-segment .v5active{background:#342034!important}
+#tab-chats .tab-page,#tab-contacts .tab-page,#tab-calls .tab-page{padding:0 14px 100px!important}
+#tab-settings .tab-page{padding-bottom:110px!important}
+#tab-chats .friend-item,#tab-contacts .friend-item,#tab-calls .call-log-item{background:transparent;border:0;border-bottom:1px solid #ffffff12;border-radius:0;margin:0;padding:12px 2px;min-height:66px}
+#tab-chats .avatar,#tab-contacts .avatar{width:54px;height:54px;border-radius:50%;flex-shrink:0}
+#tab-contacts .friend-email,#tab-chats .friend-email,.call-log-meta p{color:#a18ba3}
+#v5-contact-search{background:#301b2d;text-align:center;margin:6px 0 12px}
+#v5-invite,#v5-new-call2{background:transparent!important;border:0!important;color:#df39cd!important;text-align:left;font-size:17px}
+#v5-sort{font-size:12px} .v5tools{bottom:0;background:#493849;z-index:5}
+#floating-nav{background:#60475caa;border:1px solid #ffffff35;box-shadow:none;padding:4px;gap:2px}
+#floating-nav .nav-item{flex:1;color:white;padding:8px 0;min-width:0;box-shadow:none}
+#floating-nav .nav-item.active{background:#321a32;color:#e238d0;box-shadow:none} #floating-nav .nav-item.active svg{fill:none;color:#e238d0}
+#floating-nav .nav-item svg{width:24px;height:24px}
+#tab-settings .profile-hero{background:transparent;border:0;margin-bottom:4px;padding:18px 0}
+#tab-settings .profile-avatar-large{width:100px;height:100px;border-radius:50%}
+#tab-settings .profile-info-group,#tab-settings .settings-card,.v5group{background:#342034;border:0;border-radius:24px}
+.v5row{min-height:54px;padding:12px 15px;cursor:pointer;touch-action:manipulation;font-size:17px}
+.v5icon{width:30px;height:30px;flex-shrink:0;background:#7767ee;border-radius:9px;font-size:19px}
+.v5row:nth-child(4n+1) .v5icon{background:#f36b59}.v5row:nth-child(4n+2) .v5icon{background:#4799f5}.v5row:nth-child(4n+3) .v5icon{background:#68cf76}.v5row:nth-child(4n+4) .v5icon{background:#f1b64c}
+.v5panel{z-index:9000;overscroll-behavior:contain;padding:0 16px max(24px,env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+.v5panel>.v5bar{position:sticky;top:0;background:#241625;z-index:2;padding: max(12px,env(safe-area-inset-top)) 0 14px;display:grid;grid-template-columns:44px 1fr 44px;align-items:center}
+.v5panel>.v5bar button{width:44px;height:44px;padding:0;font-size:27px}.v5panel h2{margin:0;font-size:18px}
+.v5panel .v5row{background:#342034}.v5panel .v5row:first-of-type{border-radius:20px 20px 0 0}.v5panel .v5row:last-of-type{border-radius:0 0 20px 20px}
+.v5panel input[type=checkbox].v5end{appearance:none;-webkit-appearance:none;width:51px;height:29px;border-radius:30px;background:#706170;position:relative;flex-shrink:0;cursor:pointer}.v5panel input[type=checkbox].v5end:checked{background:#d237c3}.v5panel input[type=checkbox].v5end:before{content:'';position:absolute;width:23px;height:23px;top:3px;left:3px;border-radius:50%;background:white}.v5panel input[type=checkbox].v5end:checked:before{left:25px}
 </style></head>
 <body>
 
@@ -433,10 +466,10 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
         <!-- Tab 2: 通话记录页面 -->
         <div id="tab-calls" class="view-panel hidden">
             <div class="header">
-                <button class="v5btn" id="v5-call-edit">编辑</button><span class="header-title">通话</span><button class="v5btn" id="v5-new-call">☎＋</button>
+                <button class="v5btn" id="v5-call-edit">编辑</button><div id="v51-call-segment"><button class="v5btn v5active" id="v5-all-calls">全部</button><button class="v5btn" id="v5-missed">未接</button></div><button class="v5btn" id="v5-new-call">☎＋</button>
             </div>
             <div class="tab-page">
-                <div class="v5bar"><button class="v5btn v5active" id="v5-all-calls">全部</button><button class="v5btn" id="v5-missed">未接</button><button class="v5btn" id="v5-new-call2">开始新通话</button></div><div id="call-logs-container">
+                <div class="v5bar"><button class="v5btn" id="v5-new-call2">开始新通话</button></div><div id="call-logs-container">
                     <div class="empty-tip">暂无通话记录</div>
                 </div>
             </div>
@@ -447,7 +480,7 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
             <div class="tab-page" style="padding:16px;">
                 <div id="friend-list">
                     <div class="empty-tip">正在进入聊天页面...</div>
-                </div><div id="v5-tools" class="v5tools hidden"><button class="v5btn" id="v5-read">全部已读</button><button class="v5btn" id="v5-archive">归档</button><button class="v5btn" id="v5-delete">隐藏</button></div>
+                </div><div id="v5-tools" class="v5tools hidden"><button class="v5btn" id="v5-read">全部已读</button><button class="v5btn" id="v5-archive">归档</button><button class="v5btn" id="v5-delete">删除</button></div>
             </div>
         </div>
 
@@ -499,7 +532,7 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
                         <span>账号安全（见隐私和安全）</span>
                     </div>
                     <div class="settings-row">
-                        <span>关于 All Chat</span><span style="color:#888;">v5.0</span>
+                        <span>关于 All Chat</span><span style="color:#888;">v5.1</span>
                     </div>
                 </div>
 
@@ -1555,7 +1588,7 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
                         
                         const fSnap = await getDoc(doc(db, 'users', fUid));
                         if (fSnap.exists()) {
-                            openChat(fSnap.data());
+                            openChat({...fSnap.data(),uid:fUid});
                             initiateCall(isVideo);
                         } else {
                             alert('该好友账号已不存在');
@@ -2248,7 +2281,7 @@ function v5Get(){try{return JSON.parse(localStorage.getItem('allchat.v5.'+(curre
 function v5Save(p){localStorage.setItem('allchat.v5.'+(currentUser?.uid||'guest'),JSON.stringify(p))}
 let v5Editing=false,v5Selected=new Set(),v5Folder='全部',v5Sort=false,v5Missed=false,v5CallEdit=false;
 function v5Button(label,fn,cls='v5btn'){const b=document.createElement('button');b.className=cls;b.textContent=label;b.onclick=fn;return b}
-function v5Panel(title){const p=v5$('v5-panel');p.replaceChildren();p.classList.remove('hidden');const h=document.createElement('div');h.className='v5bar';h.append(v5Button('‹ 返回',()=>p.classList.add('hidden')));const t=document.createElement('h2');t.textContent=title;h.append(t);p.append(h);return p}
+function v5Panel(title){const p=v5$('v5-panel');p.replaceChildren();p.classList.remove('hidden');const h=document.createElement('div');h.className='v5bar';h.append(v5Button('‹',()=>{document.activeElement?.blur();p.classList.add('hidden')}));const t=document.createElement('h2');t.textContent=title;h.append(t);p.append(h);return p}
 function v5Row(p,label,fn,icon='›',end=''){const b=v5Button('',fn,'v5row');const i=document.createElement('span');i.className='v5icon';i.textContent=icon;const t=document.createElement('span');t.textContent=label;const e=document.createElement('span');e.className='v5end';e.textContent=end||'›';b.append(i,t,e);p.append(b);return b}
 function v5Toggle(p,label,key){const b=document.createElement('label');b.className='v5row';b.textContent=label;const c=document.createElement('input');c.type='checkbox';c.className='v5end';c.checked=v5Get()[key]!==false;c.onchange=()=>{const d=v5Get();d[key]=c.checked;v5Save(d)};b.append(c);p.append(b)}
 function v5Refresh(){const p=v5Get(), folders=v5$('v5-folders');folders.replaceChildren();for(const n of ['全部','归档',...Object.keys(p.folders||{})])folders.append(v5Button(n,()=>{v5Folder=n;v5Refresh()},'v5btn '+(v5Folder===n?'v5active':'')));for(const el of v5$('friend-list').querySelectorAll('.friend-item')){const id=el.dataset.uid;el.hidden=(p.hidden||[]).includes(id)||(v5Folder==='全部'?(p.archived||[]).includes(id):v5Folder==='归档'?!(p.archived||[]).includes(id):!(p.folders?.[v5Folder]||[]).includes(id));el.style.display=el.hidden?'none':'';el.querySelector('.v5check')?.remove();if(v5Editing){const c=document.createElement('input');c.type='checkbox';c.className='v5check';c.checked=v5Selected.has(id);c.onclick=e=>{e.stopPropagation();c.checked?v5Selected.add(id):v5Selected.delete(id)};el.prepend(c);el.onclick=()=>c.click()}else el.onclick=()=>{const f=cachedFriendsData.find(x=>x.uid===id);if(f)openChat(f)}}const q=v5$('v5-contact-search').value.toLowerCase();const list=v5$('contact-list-container');const rows=[...list.querySelectorAll('.friend-item')];if(v5Sort)rows.sort((a,b)=>a.textContent.localeCompare(b.textContent)).forEach(e=>list.append(e));for(const el of rows)el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';v5$('v5-tools').classList.toggle('hidden',!v5Editing)}
@@ -2257,11 +2290,19 @@ v5$('v5-edit').onclick=()=>{v5Editing=!v5Editing;v5Selected.clear();v5$('v5-edit
 function v5Batch(key){if(!v5Selected.size)return alert('请先选择聊天');const p=v5Get(),set=new Set(p[key]||[]);for(const id of v5Selected){if(key==='archived'&&v5Folder==='归档')set.delete(id);else set.add(id)}p[key]=[...set];v5Save(p);v5Selected.clear();v5Refresh()}
 v5$('v5-archive').onclick=()=>v5Batch('archived');v5$('v5-delete').onclick=()=>{if(confirm('仅从本设备聊天列表隐藏，不删除好友或聊天记录？'))v5Batch('hidden')};
 v5$('v5-folder-add').onclick=()=>{const p=v5Panel('新建聊天文件夹'),n=document.createElement('input');n.className='v5search';n.placeholder='文件夹名称';p.append(n);const ids=new Set();for(const f of cachedFriendsData){const l=document.createElement('label');l.className='v5row';const c=document.createElement('input');c.type='checkbox';c.onchange=()=>c.checked?ids.add(f.uid):ids.delete(f.uid);l.append(c,document.createTextNode(f.nickname||'好友'));p.append(l)}p.append(v5Button('保存',()=>{const name=n.value.trim();if(!name||['全部','归档'].includes(name))return alert('请输入其他名称');const d=v5Get();d.folders={...(d.folders||{}),[name]:[...ids]};v5Save(d);v5Folder=name;p.classList.add('hidden');v5Refresh()}))};
-function v5NewCall(){const p=v5Panel('开始新通话');for(const f of cachedFriendsData)v5Row(p,f.nickname||'好友',()=>{p.replaceChildren();v5Row(p,'语音通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(false)},'☎');v5Row(p,'视频通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(true)},'▣');p.append(v5Button('取消',()=>p.classList.add('hidden')))},'☎')}
+function v5NewCall(){const p=v5Panel('开始新通话');for(const f of cachedFriendsData)v5Row(p,f.nickname||'好友',()=>{v5Panel('选择通话方式');v5Row(p,'语音通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(false)},'☎');v5Row(p,'视频通话',()=>{p.classList.add('hidden');openChat(f);initiateCall(true)},'▣');p.append(v5Button('取消',()=>p.classList.add('hidden')))},'☎')}
 v5$('v5-new-call').onclick=v5$('v5-new-call2').onclick=v5NewCall;
 function v5Calls(){for(const el of v5$('call-logs-container').querySelectorAll('.call-log-item')){el.style.display=v5Missed&&!/未接|拒绝|取消/.test(el.dataset.status)?'none':'';el.querySelector('.v5-log-delete')?.remove();if(v5CallEdit){const b=v5Button('删除',async e=>{},'v5btn v5-log-delete');b.onclick=async e=>{e.stopPropagation();if(!confirm('删除这条通话记录？'))return;try{await deleteDoc(doc(db,'users',currentUser.uid,'callLogs',el.dataset.logId))}catch(e){alert(e.message)}};el.append(b)}}v5$('v5-all-calls').classList.toggle('v5active',!v5Missed);v5$('v5-missed').classList.toggle('v5active',v5Missed)}
 v5$('v5-all-calls').onclick=()=>{v5Missed=false;v5Calls()};v5$('v5-missed').onclick=()=>{v5Missed=true;v5Calls()};v5$('v5-call-edit').onclick=()=>{v5CallEdit=!v5CallEdit;v5$('v5-call-edit').textContent=v5CallEdit?'完成':'编辑';v5Calls()};
 const v5settings=v5$('v5-settings');v5Row(v5settings,'更改头像',()=>v5$('avatar-file-input').click(),'▣');v5Row(v5settings,'我的资料',()=>v5$('edit-profile-btn').click(),'●');v5Row(v5settings,'我的收藏',()=>{const p=v5Panel('我的收藏（本设备）');const d=v5Get();for(const [i,m] of (d.saved||[]).entries()){const r=document.createElement('div');r.className='v5row';if(m.type==='image'){const im=document.createElement('img');im.src=m.imageUrl;im.style.maxWidth='70%';r.append(im)}else if(m.type==='voice'){const a=document.createElement('audio');a.src=m.audioUrl;a.controls=true;a.style.maxWidth='75%';r.append(a)}else r.append(document.createTextNode(m.text||''));r.append(v5Button('删除',()=>{d.saved.splice(i,1);v5Save(d);r.remove()}));p.append(r)}},'★');v5Row(v5settings,'最近通话',()=>document.querySelector('[data-target="tab-calls"]').click(),'☎');v5Row(v5settings,'聊天文件夹',()=>v5$('v5-folder-add').click(),'▤');v5Row(v5settings,'通知和声音',()=>{const p=v5Panel('通知和声音');v5Toggle(p,'私聊通知','notify');v5Toggle(p,'应用内提示音','sound');v5Toggle(p,'消息预览','preview');v5Row(p,'系统通知设置',()=>{p.classList.add('hidden');v5$('notify-mode-select').focus()},'♬');v5Row(p,'测试通知',()=>v5$('test-notify-btn').click(),'♪')},'♬');v5Row(v5settings,'隐私和安全',()=>{const p=v5Panel('隐私和安全');v5Row(p,'重置密码（邮箱账号）',async()=>{try{if(!currentUser?.email||currentUser.email.endsWith(phoneDomain))return alert('此账号不支持邮箱找回密码');await sendPasswordResetEmail(auth,currentUser.email);alert('重置邮件已发送')}catch(e){alert(e.message)}},'⚿');v5Row(p,'恢复隐藏的聊天',()=>{const d=v5Get();d.hidden=[];v5Save(d);v5Refresh();alert('已恢复')},'↶');const note=document.createElement('p');note.className='v5sub';note.textContent='Face ID、屏蔽用户、两步验证及服务器隐私权限需要原生或后台支持，本版未启用。';p.append(note)},'⚿');
+
+const groups=[[0],[1],[2,3,4],[5,6]];
+const oldRows=[...v5settings.children];
+v5settings.style.background='transparent';
+for(const indexes of groups){const g=document.createElement('div');g.className='v5group';for(const i of indexes)if(oldRows[i])g.append(oldRows[i]);v5settings.append(g)}
+const oldLogout=v5$('logout-btn');oldLogout.onclick=async()=>{if(!confirm('确定退出当前账号？'))return;try{await signOut(auth);v5$('v5-panel').classList.add('hidden');v5Editing=false;v5Selected.clear();v5Folder='全部';}catch(e){alert('退出失败：'+e.message)}};
+for(const nav of navItems){nav.addEventListener('click',()=>{v5$('v5-panel').classList.add('hidden');if(v5Editing){v5Editing=false;v5Selected.clear();v5$('v5-edit').textContent='编辑';v5Refresh()}})}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!v5$('v5-panel').classList.contains('hidden'))v5$('v5-panel').classList.add('hidden')});
 
     </script>
 
