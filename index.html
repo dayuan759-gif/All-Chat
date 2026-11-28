@@ -329,6 +329,14 @@
 .tg-profile-back{width:46px;height:46px;border-radius:50%;border:1px solid #ffffff30;background:#ffffff18;color:white;font-size:28px;cursor:pointer;}
 .tg-empty{text-align:center;margin:auto;padding:22px;background:#241725dc;border-radius:22px;color:#eee;line-height:1.8;}
 button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
+
+#messages-box .msg-wrapper, #messages-box .msg-wrapper * {-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
+#msg-action-overlay {position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center;padding:20px;}
+#msg-action-panel {width:min(290px,90vw);max-height:80vh;overflow:auto;background:#30243d;border:1px solid #ffffff25;border-radius:18px;box-shadow:0 12px 40px #0008;}
+#msg-action-panel button {display:flex;width:100%;padding:14px 18px;background:none;color:white;border:0;border-bottom:1px solid #ffffff12;text-align:left;font-size:16px;cursor:pointer;}
+#msg-action-panel button.danger {color:#ff777f;}
+#msg-action-panel h3 {padding:16px;font-size:15px;color:#c4b5fd;}
+#msg-action-panel textarea {width:90%;margin:5%;padding:10px;background:#191421;color:white;border:1px solid #a78bfa;border-radius:10px;font-size:16px;}
 </style>
 </head>
 <body>
@@ -1597,6 +1605,37 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
             }
         };
 
+
+        const actionOverlay = document.createElement('div');
+        actionOverlay.id = 'msg-action-overlay'; actionOverlay.className = 'hidden';
+        const actionPanel = document.createElement('div'); actionPanel.id = 'msg-action-panel';
+        actionOverlay.append(actionPanel); document.body.append(actionOverlay);
+        function closeMsgActions(){ actionOverlay.classList.add('hidden'); actionPanel.replaceChildren(); }
+        actionOverlay.addEventListener('click', e=>{if(e.target===actionOverlay) closeMsgActions();});
+        function actionTitle(t){const h=document.createElement('h3');h.textContent=t;actionPanel.append(h);}
+        function actionButton(t, fn, danger=false){const b=document.createElement('button');b.type='button';b.textContent=t;if(danger)b.className='danger';b.onclick=async()=>{try{await fn();}catch(e){alert('操作失败：'+e.message);}};actionPanel.append(b);}
+        function showMsgActions(id,m){
+            if(!currentUser||!activeRoomId)return;
+            const uid=currentUser.uid, room=activeRoomId, mine=m.sender===uid;
+            const ref=doc(db,'rooms',room,'messages',id);
+            const textMessage=m.type==='text'||!m.type;
+            actionPanel.replaceChildren();actionOverlay.classList.remove('hidden');actionTitle('消息操作');
+            if(mine) actionButton('↶  撤回',async()=>{actionPanel.replaceChildren();actionTitle('撤回后双方均无法查看此消息');actionButton('确认撤回',async()=>{await deleteDoc(ref);closeMsgActions();},true);actionButton('取消',closeMsgActions);},true);
+            if(typeof m.text==='string') actionButton('▢  复制',async()=>{try{await navigator.clipboard.writeText(m.text);closeMsgActions();}catch(e){actionPanel.replaceChildren();actionTitle('请手动复制');const t=document.createElement('textarea');t.value=m.text;actionPanel.append(t);t.focus();t.select();actionButton('关闭',closeMsgActions);}});
+            if(mine&&textMessage) actionButton('✎  编辑',()=>{actionPanel.replaceChildren();actionTitle('编辑消息');const t=document.createElement('textarea');t.value=m.text||'';actionPanel.append(t);actionButton('保存',async()=>{if(!t.value.trim())return;await updateDoc(ref,{text:t.value.trim()});closeMsgActions();});actionButton('取消',closeMsgActions);});
+            if(textMessage||m.type==='image'||m.type==='voice') actionButton('➜  转发',()=>{actionPanel.replaceChildren();actionTitle('选择转发好友');for(const f of cachedFriendsData){if(!f.uid||f.uid===uid)continue;actionButton(f.nickname||f.phone||f.email||'好友',async()=>{const target=[uid,f.uid].sort().join('_');const data={type:m.type||'text',sender:uid,createdAt:serverTimestamp()};if(data.type==='image')data.imageUrl=m.imageUrl;else if(data.type==='voice')data.audioUrl=m.audioUrl;else data.text=m.text||'';await addDoc(collection(db,'rooms',target,'messages'),data);closeMsgActions();});}actionButton('取消',closeMsgActions);});
+            actionButton('取消',closeMsgActions);
+        }
+        function bindMsgHold(row,id,m){
+            let timer=null,x=0,y=0,held=false;
+            const cancel=()=>{clearTimeout(timer);timer=null;};
+            row.addEventListener('pointerdown',e=>{if(isSelectMode||e.button!==0)return;cancel();held=false;x=e.clientX;y=e.clientY;timer=setTimeout(()=>{held=true;showMsgActions(id,m);},480);});
+            row.addEventListener('pointermove',e=>{if(Math.hypot(e.clientX-x,e.clientY-y)>10)cancel();});
+            for(const ev of ['pointerup','pointercancel','pointerleave'])row.addEventListener(ev,cancel);
+            row.addEventListener('contextmenu',e=>{if(isSelectMode)return;e.preventDefault();cancel();held=true;showMsgActions(id,m);});
+            row.addEventListener('click',e=>{if(held){e.preventDefault();e.stopImmediatePropagation();held=false;}},true);
+        }
+
         function renderMessagesList(messagesList) {
             const msgBox = document.getElementById('messages-box');
             msgBox.innerHTML = '';
@@ -1670,6 +1709,7 @@ button{-webkit-tap-highlight-color:transparent;}button:active{opacity:.8;}
                 }
 
                 wrapper.innerHTML = checkboxHTML;
+                bindMsgHold(row,id,m);
                 wrapper.appendChild(row);
                 msgBox.appendChild(wrapper);
             });
