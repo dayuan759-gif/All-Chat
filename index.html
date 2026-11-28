@@ -547,10 +547,10 @@ body:has(#tab-calls:not(.hidden)) #floating-nav{background:#493849e8!important;b
                         <button class="notify-test-btn" id="test-notify-btn">发送测试通知</button>
                     </div>
                     <div class="settings-row">
-                        <span>账号安全（见隐私和安全）</span>
+                        <span>修改密码</span><button type="button" id="ac12-password" class="notify-test-btn">修改 ›</button>
                     </div>
                     <div class="settings-row">
-                        <span>关于 All Chat</span><span style="color:#888;">v5.1</span>
+                        <span>关于 All Chat</span><span style="color:#888;">V12</span>
                     </div>
                 </div>
 
@@ -2327,7 +2327,7 @@ v5settings.style.background='transparent';
 for(const indexes of groups){const g=document.createElement('div');g.className='v5group';for(const i of indexes)if(oldRows[i])g.append(oldRows[i]);v5settings.append(g)}
 // V11: authenticated password change
 const passwordGroup=document.createElement('div');passwordGroup.className='v5group';v5settings.append(passwordGroup);
-v5Row(passwordGroup,'修改密码',()=>{
+function ac12Password(){
  const p=v5Panel('修改密码');
  const user=auth.currentUser;
  if(!user || !user.email || !user.providerData.some(x=>x.providerId==='password')){const t=document.createElement('p');t.textContent='当前账号未绑定邮箱密码，请使用原登录方式。';p.append(t);return;}
@@ -2336,7 +2336,8 @@ v5Row(passwordGroup,'修改密码',()=>{
  const status=document.createElement('p');status.setAttribute('role','status');status.style.color='#e65bdb';form.append(status);
  const save=document.createElement('button');save.type='submit';save.className='v5btn';save.textContent='保存新密码';form.append(save);
  form.onsubmit=async e=>{e.preventDefault();const [old,next,again]=fields.map(x=>x.value);if(next.length<6){status.textContent='新密码至少需要6个字符';return;}if(next!==again){status.textContent='两次新密码不一致';return;}if(old===next){status.textContent='新密码不能与当前密码相同';return;}save.disabled=true;status.textContent='正在验证…';try{if(auth.currentUser?.uid!==user.uid)throw new Error('账号已切换，请重新打开设置');await reauthenticateWithCredential(user,EmailAuthProvider.credential(user.email,old));await updatePassword(user,next);fields.forEach(x=>x.value='');alert('密码修改成功，下次请使用新密码登录');p.classList.add('hidden');}catch(err){status.textContent=({'auth/wrong-password':'当前密码错误','auth/invalid-credential':'当前密码错误或凭据无效','auth/weak-password':'新密码不符合安全要求','auth/too-many-requests':'尝试次数过多，请稍后再试','auth/network-request-failed':'网络连接失败，请重试'})[err.code]||'修改失败：'+(err.code||err.message);}finally{save.disabled=false;}};
-},'🔒');
+}
+v5$('ac12-password').addEventListener('click',ac12Password);
 const oldLogout=v5$('logout-btn');oldLogout.onclick=async()=>{if(!confirm('确定退出当前账号？'))return;try{await signOut(auth);v5$('v5-panel').classList.add('hidden');v5Editing=false;v5Selected.clear();v5Folder='全部';}catch(e){alert('退出失败：'+e.message)}};
 for(const nav of navItems){nav.addEventListener('click',()=>{v5$('v5-panel').classList.add('hidden');if(v5Editing){v5Editing=false;v5Selected.clear();v5$('v5-edit').textContent='编辑';v5Refresh()}})}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!v5$('v5-panel').classList.contains('hidden'))v5$('v5-panel').classList.add('hidden')});
