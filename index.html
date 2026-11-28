@@ -351,6 +351,9 @@ html.ac-safari #chat-normal-header, html.ac-safari .tg-input-container { flex-sh
 html.ac-safari #msg-input { font-size:16px; }
 html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
 </style>
+<style>
+.voice-bubble.tg-voice{width:190px;min-width:0;max-width:100%;padding:9px 11px;gap:10px;border-radius:18px 18px 5px 18px;box-sizing:border-box;cursor:default}.msg-row:not(.me) .tg-voice{border-radius:18px 18px 18px 5px}.tg-voice .voice-play-icon{width:44px;height:44px;border:0;padding:0;font-size:19px;line-height:1;cursor:pointer;-webkit-tap-highlight-color:transparent}.tg-voice .voice-info{min-width:0;gap:2px}.tg-voice .voice-wave{display:flex;align-items:center;justify-content:space-between;height:28px;gap:2px;cursor:pointer}.tg-voice .voice-wave i{display:block;flex:1;max-width:3px;border-radius:3px;background:rgba(255,255,255,.48)}.tg-voice .voice-wave i.played{background:#fff}.tg-voice .voice-duration{font-size:11px;color:rgba(255,255,255,.85);font-variant-numeric:tabular-nums}.tg-voice .voice-time-sub{text-align:right;font-size:10px;line-height:12px}
+</style>
 </head>
 <body>
 
@@ -1651,6 +1654,8 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
 
         function renderMessagesList(messagesList) {
             const msgBox = document.getElementById('messages-box');
+            const voiceIds=new Set(messagesList.filter(x=>x.data.type==='voice').map(x=>x.id));
+            for(const [id,state] of voicePlayers){if(!voiceIds.has(id)){state.audio.pause();state.audio.removeAttribute('src');state.audio.load();state.view=null;voicePlayers.delete(id);if(voiceActive===state)voiceActive=null;}}
             msgBox.innerHTML = '';
 
             if (!messagesList.length) { const empty = document.createElement('div'); empty.className = 'tg-empty'; empty.textContent = '暂无消息… 发送消息开始聊天'; msgBox.appendChild(empty); }
@@ -1673,15 +1678,7 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
                 if (m.type === 'recalled') {
                     row.innerHTML = '<div class="recall-notice">消息已撤回</div>';
                 } else if (m.type === 'voice') {
-                    row.innerHTML = `
-                        <div class="voice-bubble" ${isSelectMode ? '' : `onclick="playVoice('${m.audioUrl}')"`}>
-                            <div class="voice-play-icon">▶</div>
-                            <div class="voice-info">
-                                <div class="voice-wave">lllll||l||||</div>
-                                <div class="voice-time-sub">${timeStr} ${isMe ? '✓' : ''}</div>
-                            </div>
-                        </div>
-                    `;
+                    row.appendChild(makeVoiceBubble(id, m, timeStr, isMe));
                 } else if (m.type === 'image') {
                     row.innerHTML = `
                         <div class="msg-bubble">
@@ -1810,16 +1807,33 @@ html.ac-safari.ac-keyboard .tg-input-container { padding-bottom:4px; }
             }
         };
 
-        window.playVoice = function(base64Audio) {
-            try {
-                const audio = new Audio(base64Audio);
-                audio.play().catch(e => alert('播放失败: ' + e.message));
-            } catch (e) {
-                alert('播放出错: ' + e.message);
+        let voiceActive = null;
+        const voicePlayers = new Map();
+        function voiceClock(n) { n = Number.isFinite(n) ? Math.max(0, Math.floor(n)) : 0; return Math.floor(n/60)+':'+String(n%60).padStart(2,'0'); }
+        function makeVoiceBubble(id,m,timeStr,isMe) {
+            let state = voicePlayers.get(id);
+            if (!state || state.url !== m.audioUrl) {
+                const audio = new Audio(); audio.preload='metadata'; audio.src=m.audioUrl;
+                state={audio,url:m.audioUrl,view:null}; voicePlayers.set(id,state);
+                for(const ev of ['loadedmetadata','durationchange','timeupdate','play','pause','ended','seeked']) audio.addEventListener(ev,()=>{if(ev==='ended'){audio.currentTime=0;if(voiceActive===state)voiceActive=null;} state.view?.();});
             }
-        };
+            const audio=state.audio;
+            const box=document.createElement('div'); box.className='voice-bubble tg-voice';
+            box.innerHTML=`<button type="button" class="voice-play-icon" aria-label="播放"></button><div class="voice-info"><div class="voice-wave" aria-hidden="true"></div><div class="voice-duration">0:00</div><div class="voice-time-sub"></div></div>`;
+            const btn=box.querySelector('button'), wave=box.querySelector('.voice-wave'), duration=box.querySelector('.voice-duration');
+            box.querySelector('.voice-time-sub').textContent=timeStr+(isMe?' ✓':'');
+            const heights=[8,12,9,18,13,23,12,17,26,19,11,16,24,13,19,27,16,10,21,13,8,15,10,6];
+            heights.forEach(h=>{const bar=document.createElement('i');bar.style.height=h+'px';wave.appendChild(bar);});
+            state.view=()=>{const playing=!audio.paused&&!audio.ended;btn.textContent=playing?'Ⅱ':'▶';btn.setAttribute('aria-label',playing?'暂停':'播放');duration.textContent=voiceClock(audio.currentTime>0?audio.currentTime:audio.duration);const ratio=Number.isFinite(audio.duration)&&audio.duration>0?audio.currentTime/audio.duration:0;Array.from(wave.children).forEach((bar,i)=>bar.classList.toggle('played',i/heights.length<ratio));};
+            state.view();
+            btn.onclick=async e=>{if(isSelectMode)return;e.stopPropagation();if(!audio.paused){audio.pause();return;}if(voiceActive&&voiceActive!==state)voiceActive.audio.pause();voiceActive=state;try{await audio.play();}catch(err){if(err.name!=='AbortError')alert('播放失败: '+err.message);}state.view();};
+            wave.onclick=e=>{if(isSelectMode||!Number.isFinite(audio.duration))return;e.stopPropagation();const r=wave.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*audio.duration;};
+            return box;
+        }
+        function clearVoicePlayers(){for(const state of voicePlayers.values()){state.audio.pause();state.audio.removeAttribute('src');state.audio.load();state.view=null;}voicePlayers.clear();voiceActive=null;}
 
         document.getElementById('back-to-list-btn').onclick = () => {
+            clearVoicePlayers();
             closeTgProfile();
             if (unsubMessages) unsubMessages();
             activeRoomId = null;
